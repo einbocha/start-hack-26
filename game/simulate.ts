@@ -9,6 +9,7 @@ function clampPrice(p: number): number {
 }
 
 function volatilityFactor(asset: Asset): number {
+  if (asset.volatilityLabel === 'stable') return asset.volatility * 0.4;
   // ETFs are usually calmer than single stocks.
   if (asset.type === 'etf' && asset.sector === 'Bonds') return asset.volatility * 0.35;
   if (asset.type === 'etf') return asset.volatility * 0.65;

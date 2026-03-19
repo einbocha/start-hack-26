@@ -1,10 +1,10 @@
-export type AssetType = 'stock' | 'etf';
+export type AssetType = 'stock' | 'etf' | 'property';
 
 export type Market = 'Switzerland' | 'USA' | 'Emerging Markets' | 'Global';
 
 export type Sector = 'Healthcare' | 'Technology' | 'Finance' | 'Broad Market' | 'Bonds';
 
-export type VolatilityLabel = 'low' | 'medium' | 'high';
+export type VolatilityLabel = 'low' | 'medium' | 'high' | 'stable';
 
 export type BuildingVisualType =
   | 'Hospital'

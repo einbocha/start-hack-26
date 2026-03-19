@@ -163,19 +163,21 @@ export function Hud({
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline' }}>
             <div style={{ fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', fontSize: 12 }}>
-              {state.uiMode === 'city' ? 'City Portfolio' : 'Stock Portfolio'}
+              Overview
             </div>
             <div style={{ fontWeight: 700, fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>Year {state.year}</div>
           </div>
 
           <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr auto', gap: 8, fontSize: 13 }}>
-            <div style={{ color: 'rgba(255,255,255,0.6)' }}>Cash</div>
+            <div style={{ color: 'rgba(255,255,255,0.6)' }}>{state.uiMode === 'city' ? 'Available Coins' : 'Cash'}</div>
             <div style={{ fontWeight: 700 }}>{fmt(state.player.cash)}</div>
 
-            <div style={{ color: 'rgba(255,255,255,0.6)' }}>Invested value</div>
+            <div style={{ color: 'rgba(255,255,255,0.6)' }}>
+              {state.uiMode === 'city' ? 'Building Value' : 'Invested value'}
+            </div>
             <div style={{ fontWeight: 700 }}>{fmt(invested)}</div>
 
-            <div style={{ color: 'rgba(255,255,255,0.6)' }}>Net worth</div>
+            <div style={{ color: 'rgba(255,255,255,0.6)' }}>{state.uiMode === 'city' ? 'Total Coins' : 'Net worth'}</div>
             <div style={{ fontWeight: 800 }}>{fmt(worth)}</div>
 
             <div style={{ color: 'rgba(255,255,255,0.6)' }}>Gain / loss</div>
@@ -185,18 +187,6 @@ export function Hud({
           {hint && (
             <div style={{ marginTop: 10, fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>
               {hint}
-            </div>
-          )}
-
-          {state.lastActionMessage && (
-            <div style={{ marginTop: 10, fontSize: 12, color: 'rgba(255,255,255,0.82)' }}>
-              {state.lastActionMessage}
-            </div>
-          )}
-
-          {debugSelectedBuildingFileName && (
-            <div style={{ marginTop: 10, fontSize: 12, color: 'rgba(255,255,255,0.72)' }}>
-              Debug model: {debugSelectedBuildingFileName}
             </div>
           )}
 
@@ -221,7 +211,7 @@ export function Hud({
                 cursor: 'pointer',
               }}
             >
-              <span>{state.uiMode === 'city' ? 'My investements' : 'My Stocks'}</span>
+              <span>{state.uiMode === 'city' ? 'My buildings' : 'My Stocks'}</span>
               <span style={{ fontSize: 10 }}>{stocksOpen ? '▲' : '▼'}</span>
             </button>
 
@@ -266,7 +256,7 @@ export function Hud({
                         onClick={() => onSelectAsset(asset.id)}
                       >
                         <div style={{ fontWeight: 700, color: 'rgba(255,255,255,0.9)' }}>
-                          {asset.symbol}
+                          {asset.displayName}
                         </div>
                         <div style={{ fontWeight: 700, color: ratioColor, textAlign: 'right' }}>
                           {ratio >= 0 ? '+' : ''}{fmtPct(ratio)}

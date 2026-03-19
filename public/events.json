@@ -1,0 +1,992 @@
+[
+    {
+    "text": "Consumer demand rebounds after a calm winter and global markets regain confidence. Tech and finance benefit from stronger spending and smoother credit conditions.",
+    "start_year": 2027.0,
+    "end_year": 2027.5,
+    "mode": "stock",
+    "companies": ["Apple", "J.P. Morgan", "Global Equity ETF"],
+    "symbols": ["AAPL", "JPM", "GLB-ETF"],
+    "values": [1.03, 1.02, 1.02]
+    },
+    {
+    "text": "A respected executive at Logitech resigns suddenly after an internal governance dispute. Investors worry that hidden operational issues may surface.",
+    "start_year": 2028.0,
+    "end_year": 2028.5,
+    "mode": "stock",
+    "companies": ["Logitech", "Technology ETF"],
+    "symbols": ["LOGN", "TECH-ETF"],
+    "values": [0.95, 0.99]
+    },
+    {
+    "text": "A new treatment platform shows strong clinical results and renews optimism in large pharmaceutical firms. Investors rotate into defensive healthcare names.",
+    "start_year": 2029.0,
+    "end_year": 2029.5,
+    "mode": "stock",
+    "companies": ["Novartis", "Eli Lilly", "Healthcare ETF"],
+    "symbols": ["NVS", "LLY", "HLTH-ETF"],
+    "values": [1.04, 1.05, 1.03]
+    },
+    {
+    "text": "Loan growth slows as households become cautious and businesses delay expansion. Financial firms face softer earnings expectations for a few quarters.",
+    "start_year": 2030.0,
+    "end_year": 2030.5,
+    "mode": "stock",
+    "companies": ["PostFinance", "ICICI Bank", "Global Equity ETF"],
+    "symbols": ["POST", "IBN", "GLB-ETF"],
+    "values": [0.97, 0.96, 0.99]
+    },
+    {
+    "text": "A wave of AI-assisted devices becomes unexpectedly popular with consumers. Hardware and ecosystem companies benefit from a fast rise in demand.",
+    "start_year": 2031.0,
+    "end_year": 2031.5,
+    "mode": "stock",
+    "companies": ["Apple", "Logitech", "Technology ETF"],
+    "symbols": ["AAPL", "LOGN", "TECH-ETF"],
+    "values": [1.05, 1.06, 1.03]
+    },
+    {
+    "text": "Later that year, policymakers begin discussing tougher platform rules in several major markets. Investors reduce expectations for international tech expansion.",
+    "start_year": 2031.5,
+    "end_year": 2032.0,
+    "mode": "stock",
+    "companies": ["Tencent", "Technology ETF"],
+    "symbols": ["TCEHY", "TECH-ETF"],
+    "values": [0.96, 0.99]
+    },
+    {
+    "text": "Capital markets stabilize and investors start buying quality names again after a nervous period. The rebound is broad but still moderate.",
+    "start_year": 2032.0,
+    "end_year": 2032.5,
+    "mode": "stock",
+    "companies": ["Apple", "Novartis", "J.P. Morgan", "Global Equity ETF", "Swiss Market ETF"],
+    "symbols": ["AAPL", "NVS", "JPM", "GLB-ETF", "SMI-ETF"],
+    "values": [1.03, 1.02, 1.03, 1.02, 1.02]
+    },
+    {
+    "text": "Central banks cut rates to support growth after a soft patch in the economy. Lower financing costs help banks and large-cap equities recover together, while bonds also rally.",
+    "start_year": 2033.0,
+    "end_year": 2033.5,
+    "mode": "stock",
+    "companies": ["PostFinance", "J.P. Morgan", "Apple", "Bond ETF", "Global Equity ETF"],
+    "symbols": ["POST", "JPM", "AAPL", "BOND-ETF", "GLB-ETF"],
+    "values": [1.04, 1.04, 1.03, 1.03, 1.03]
+    },
+    {
+    "text": "A ransomware incident disrupts payment infrastructure across several regions. Financial institutions take a reputational hit while they restore systems.",
+    "start_year": 2034.0,
+    "end_year": 2034.5,
+    "mode": "stock",
+    "companies": ["J.P. Morgan", "ICICI Bank", "Global Equity ETF"],
+    "symbols": ["JPM", "IBN", "GLB-ETF"],
+    "values": [0.94, 0.93, 0.99]
+    },
+    {
+    "text": "A long stretch of stable earnings surprises investors who had positioned too defensively. Gradually, confidence returns across healthcare and tech.",
+    "start_year": 2035.0,
+    "end_year": 2035.5,
+    "mode": "stock",
+    "companies": ["Novartis", "Apple", "Tencent", "Healthcare ETF", "Technology ETF"],
+    "symbols": ["NVS", "AAPL", "TCEHY", "HLTH-ETF", "TECH-ETF"],
+    "values": [1.03, 1.03, 1.03, 1.02, 1.02]
+    },
+    {
+    "text": "An unpredictable new mayor keeps changing taxes and zoning priorities in the city simulation layer. Market participants become more cautious around anything exposed to policy shocks.",
+    "start_year": 2036.0,
+    "end_year": 2036.5,
+    "mode": "city",
+    "companies": ["PostFinance", "Tencent", "Swiss Market ETF"],
+    "symbols": ["POST", "TCEHY", "SMI-ETF"],
+    "values": [0.97, 0.97, 0.99]
+    },
+    {
+    "text": "Demographic trends drive a steady increase in long-term healthcare spending. Large drug makers benefit from durable demand rather than hype.",
+    "start_year": 2037.0,
+    "end_year": 2037.5,
+    "mode": "stock",
+    "companies": ["Novartis", "Eli Lilly", "Healthcare ETF"],
+    "symbols": ["NVS", "LLY", "HLTH-ETF"],
+    "values": [1.04, 1.04, 1.03]
+    },
+    {
+    "text": "A border conflict creates a short-lived scare in global markets. Investors flee cyclical and financial assets before the situation cools.",
+    "start_year": 2038.0,
+    "end_year": 2038.5,
+    "mode": "stock",
+    "companies": ["J.P. Morgan", "Apple", "Global Equity ETF"],
+    "symbols": ["JPM", "AAPL", "GLB-ETF"],
+    "values": [0.96, 0.97, 0.99]
+    },
+    {
+    "text": "An enterprise software boom lifts productivity expectations for the next decade. Large ecosystem tech players are repriced upward.",
+    "start_year": 2039.0,
+    "end_year": 2039.5,
+    "mode": "stock",
+    "companies": ["Apple", "Tencent", "Technology ETF"],
+    "symbols": ["AAPL", "TCEHY", "TECH-ETF"],
+    "values": [1.05, 1.04, 1.03]
+    },
+    {
+    "text": "An internal audit reveals that a regional lending unit had overstated loan quality. Confidence in one bank drops sharply and reminds players about single-stock risk.",
+    "start_year": 2040.0,
+    "end_year": 2040.5,
+    "mode": "stock",
+    "companies": ["ICICI Bank", "Global Equity ETF"],
+    "symbols": ["IBN", "GLB-ETF"],
+    "values": [0.91, 0.99]
+    },
+    {
+    "text": "Trade barriers are reduced across several major corridors and multinational firms regain flexibility. Export-oriented companies benefit first.",
+    "start_year": 2041.0,
+    "end_year": 2041.5,
+    "mode": "stock",
+    "companies": ["Apple", "Tencent", "Logitech", "Technology ETF", "Global Equity ETF"],
+    "symbols": ["AAPL", "TCEHY", "LOGN", "TECH-ETF", "GLB-ETF"],
+    "values": [1.03, 1.03, 1.04, 1.03, 1.02]
+    },
+    {
+    "text": "A fast-spreading respiratory virus returns and causes a sharp shock to travel, spending, and confidence. Stocks broadly weaken as investors brace for recession, while bonds hold up better.",
+    "start_year": 2042.0,
+    "end_year": 2042.5,
+    "mode": "stock",
+    "companies": ["Apple", "Tencent", "J.P. Morgan", "PostFinance", "ICICI Bank", "Logitech", "Global Equity ETF", "Swiss Market ETF", "Technology ETF"],
+    "symbols": ["AAPL", "TCEHY", "JPM", "POST", "IBN", "LOGN", "GLB-ETF", "SMI-ETF", "TECH-ETF"],
+    "values": [0.92, 0.92, 0.93, 0.94, 0.93, 0.92, 0.96, 0.97, 0.95]
+    },
+    {
+    "text": "By the second half, central banks step in aggressively with support measures and markets begin pricing in recovery before the real economy feels better. The rebound rewards investors who stayed calm.",
+    "start_year": 2042.5,
+    "end_year": 2043.0,
+    "mode": "stock",
+    "companies": ["Apple", "J.P. Morgan", "PostFinance", "Bond ETF", "Global Equity ETF"],
+    "symbols": ["AAPL", "JPM", "POST", "BOND-ETF", "GLB-ETF"],
+    "values": [1.06, 1.05, 1.05, 1.03, 1.04]
+    },
+    {
+    "text": "The rebuilding phase drives a burst of construction, logistics, and local spending in the city layer. Financial intermediaries and consumer-linked firms benefit from renewed activity.",
+    "start_year": 2043.0,
+    "end_year": 2043.5,
+    "mode": "city",
+    "companies": ["PostFinance", "Apple", "Swiss Market ETF"],
+    "symbols": ["POST", "AAPL", "SMI-ETF"],
+    "values": [1.04, 1.03, 1.02]
+    },
+    {
+    "text": "Power shortages raise manufacturing costs and dent margins in electronics. Investors cut back near-term expectations for hardware firms.",
+    "start_year": 2044.0,
+    "end_year": 2044.5,
+    "mode": "stock",
+    "companies": ["Apple", "Logitech", "Technology ETF"],
+    "symbols": ["AAPL", "LOGN", "TECH-ETF"],
+    "values": [0.97, 0.96, 0.99]
+    },
+    {
+    "text": "A wave of drug approvals changes sentiment around global pharma. The sector becomes one of the few places investors are willing to pay a premium again.",
+    "start_year": 2045.0,
+    "end_year": 2045.5,
+    "mode": "stock",
+    "companies": ["Novartis", "Eli Lilly", "Healthcare ETF"],
+    "symbols": ["NVS", "LLY", "HLTH-ETF"],
+    "values": [1.05, 1.06, 1.03]
+    },
+    {
+    "text": "Debt markets become jumpy after several overleveraged firms miss payments. Banks hold up, but investors briefly fear broader contagion.",
+    "start_year": 2046.0,
+    "end_year": 2046.5,
+    "mode": "stock",
+    "companies": ["J.P. Morgan", "PostFinance", "Bond ETF"],
+    "symbols": ["JPM", "POST", "BOND-ETF"],
+    "values": [0.97, 0.97, 1.01]
+    },
+    {
+    "text": "Breakthroughs in machine learning infrastructure create a fresh platform cycle. Big ecosystem companies are viewed as long-term beneficiaries.",
+    "start_year": 2047.0,
+    "end_year": 2047.5,
+    "mode": "stock",
+    "companies": ["Apple", "Tencent", "Logitech", "Technology ETF"],
+    "symbols": ["AAPL", "TCEHY", "LOGN", "TECH-ETF"],
+    "values": [1.05, 1.04, 1.04, 1.03]
+    },
+    {
+    "text": "Regulators begin discussing forced interoperability and app-store restrictions. The market trims some of the previous year’s enthusiasm.",
+    "start_year": 2048.0,
+    "end_year": 2048.5,
+    "mode": "stock",
+    "companies": ["Apple", "Tencent", "Technology ETF"],
+    "symbols": ["AAPL", "TCEHY", "TECH-ETF"],
+    "values": [0.97, 0.96, 0.99]
+    },
+    {
+    "text": "A boring but healthy year of steady earnings does more for confidence than headlines ever could. Diversified portfolios grind upward.",
+    "start_year": 2049.0,
+    "end_year": 2049.5,
+    "mode": "stock",
+    "companies": ["Novartis", "Apple", "J.P. Morgan", "Global Equity ETF", "Swiss Market ETF"],
+    "symbols": ["NVS", "AAPL", "JPM", "GLB-ETF", "SMI-ETF"],
+    "values": [1.02, 1.03, 1.02, 1.02, 1.02]
+    },
+    {
+    "text": "A real-estate lending scare emerges in a fast-growing region and drags local finance names lower. The shock remains contained but painful for concentrated investors.",
+    "start_year": 2050.0,
+    "end_year": 2050.5,
+    "mode": "stock",
+    "companies": ["ICICI Bank", "Global Equity ETF"],
+    "symbols": ["IBN", "GLB-ETF"],
+    "values": [0.93, 0.99]
+    },
+    {
+    "text": "Governments launch infrastructure programs to support long-term growth. Payment flows, procurement, and commercial credit all improve.",
+    "start_year": 2051.0,
+    "end_year": 2051.5,
+    "mode": "stock",
+    "companies": ["J.P. Morgan", "PostFinance", "ICICI Bank", "Global Equity ETF"],
+    "symbols": ["JPM", "POST", "IBN", "GLB-ETF"],
+    "values": [1.04, 1.03, 1.04, 1.02]
+    },
+    {
+    "text": "The premium consumer electronics market becomes crowded and sales momentum cools. Investors lower expectations for hardware upgrade cycles.",
+    "start_year": 2052.0,
+    "end_year": 2052.5,
+    "mode": "stock",
+    "companies": ["Apple", "Logitech", "Technology ETF"],
+    "symbols": ["AAPL", "LOGN", "TECH-ETF"],
+    "values": [0.97, 0.96, 0.99]
+    },
+    {
+    "text": "A biotech manufacturing leap makes personalized medicine more scalable. Large pharmaceutical firms are rewarded for their global reach and research depth.",
+    "start_year": 2053.0,
+    "end_year": 2053.5,
+    "mode": "stock",
+    "companies": ["Eli Lilly", "Novartis", "Healthcare ETF"],
+    "symbols": ["LLY", "NVS", "HLTH-ETF"],
+    "values": [1.06, 1.05, 1.03]
+    },
+    {
+    "text": "An automated trading feedback loop causes a violent market drop over a few sessions. Liquidity disappears at exactly the wrong time and nearly every stock gets hit, while diversified funds still fall less than individual names.",
+    "start_year": 2054.0,
+    "end_year": 2054.5,
+    "mode": "stock",
+    "companies": ["Apple", "Tencent", "Logitech", "Novartis", "Eli Lilly", "PostFinance", "J.P. Morgan", "ICICI Bank", "Global Equity ETF", "Swiss Market ETF", "Technology ETF", "Healthcare ETF"],
+    "symbols": ["AAPL", "TCEHY", "LOGN", "NVS", "LLY", "POST", "JPM", "IBN", "GLB-ETF", "SMI-ETF", "TECH-ETF", "HLTH-ETF"],
+    "values": [0.9, 0.9, 0.89, 0.93, 0.93, 0.92, 0.91, 0.9, 0.95, 0.96, 0.94, 0.96]
+    },
+    {
+    "text": "Emergency coordination between exchanges and central banks restores order in the second half. Markets recover faster than the headlines would suggest.",
+    "start_year": 2054.5,
+    "end_year": 2055.0,
+    "mode": "stock",
+    "companies": ["Apple", "J.P. Morgan", "Novartis", "Global Equity ETF", "Bond ETF"],
+    "symbols": ["AAPL", "JPM", "NVS", "GLB-ETF", "BOND-ETF"],
+    "values": [1.06, 1.05, 1.03, 1.04, 1.02]
+    },
+    {
+    "text": "A disciplined recovery year rewards players who did not sell at the lows. The lesson lands clearly: panic can lock in losses just before the rebound.",
+    "start_year": 2055.0,
+    "end_year": 2055.5,
+    "mode": "stock",
+    "companies": ["Apple", "Tencent", "J.P. Morgan", "ICICI Bank", "Global Equity ETF"],
+    "symbols": ["AAPL", "TCEHY", "JPM", "IBN", "GLB-ETF"],
+    "values": [1.04, 1.04, 1.03, 1.04, 1.03]
+    },
+    {
+    "text": "A data-privacy controversy damages trust in a major online platform. Growth remains intact, but valuation multiples compress.",
+    "start_year": 2056.0,
+    "end_year": 2056.5,
+    "mode": "stock",
+    "companies": ["Tencent", "Technology ETF"],
+    "symbols": ["TCEHY", "TECH-ETF"],
+    "values": [0.95, 0.99]
+    },
+    {
+    "text": "Automation lowers costs across supply chains and helps margins recover. Productivity-focused companies benefit the most.",
+    "start_year": 2057.0,
+    "end_year": 2057.5,
+    "mode": "stock",
+    "companies": ["Apple", "Logitech", "Technology ETF"],
+    "symbols": ["AAPL", "LOGN", "TECH-ETF"],
+    "values": [1.04, 1.05, 1.03]
+    },
+    {
+    "text": "A severe drought weakens regional demand and increases credit stress in vulnerable areas. Investors apply a discount to emerging-market finance.",
+    "start_year": 2058.0,
+    "end_year": 2058.5,
+    "mode": "city",
+    "companies": ["ICICI Bank", "Global Equity ETF"],
+    "symbols": ["IBN", "GLB-ETF"],
+    "values": [0.96, 0.99]
+    },
+    {
+    "text": "Digital banking adoption accelerates and formerly underbanked customers enter the formal financial system. Long-run growth expectations improve.",
+    "start_year": 2059.0,
+    "end_year": 2059.5,
+    "mode": "stock",
+    "companies": ["PostFinance", "ICICI Bank", "Global Equity ETF"],
+    "symbols": ["POST", "IBN", "GLB-ETF"],
+    "values": [1.03, 1.05, 1.02]
+    },
+    {
+    "text": "A noisy election year keeps markets off-balance and investors uncertain. Prices swing more than fundamentals justify.",
+    "start_year": 2060.0,
+    "end_year": 2060.5,
+    "mode": "stock",
+    "companies": ["Tencent", "J.P. Morgan", "ICICI Bank", "Global Equity ETF"],
+    "symbols": ["TCEHY", "JPM", "IBN", "GLB-ETF"],
+    "values": [0.97, 0.98, 0.97, 0.99]
+    },
+    {
+    "text": "A new generation of intelligent assistants becomes embedded in everyday workflows. Ecosystem owners are viewed as structural winners.",
+    "start_year": 2061.0,
+    "end_year": 2061.5,
+    "mode": "stock",
+    "companies": ["Apple", "Tencent", "Technology ETF"],
+    "symbols": ["AAPL", "TCEHY", "TECH-ETF"],
+    "values": [1.05, 1.04, 1.03]
+    },
+    {
+    "text": "Governments push through healthcare price reforms that reduce profit expectations on some flagship drugs. Pharma remains strong, but less untouchable.",
+    "start_year": 2062.0,
+    "end_year": 2062.5,
+    "mode": "stock",
+    "companies": ["Novartis", "Eli Lilly", "Healthcare ETF"],
+    "symbols": ["NVS", "LLY", "HLTH-ETF"],
+    "values": [0.97, 0.96, 0.99]
+    },
+    {
+    "text": "Cross-border digital commerce expands rapidly and platform monetization improves. Investors warm again to internet-led growth.",
+    "start_year": 2063.0,
+    "end_year": 2063.5,
+    "mode": "stock",
+    "companies": ["Tencent", "Apple", "Technology ETF", "Global Equity ETF"],
+    "symbols": ["TCEHY", "AAPL", "TECH-ETF", "GLB-ETF"],
+    "values": [1.05, 1.03, 1.03, 1.02]
+    },
+    {
+    "text": "A security breach at a major cloud vendor raises fears about hidden infrastructure risk. The tech sector sells off despite otherwise healthy demand.",
+    "start_year": 2064.0,
+    "end_year": 2064.5,
+    "mode": "stock",
+    "companies": ["Apple", "Tencent", "Logitech", "Technology ETF"],
+    "symbols": ["AAPL", "TCEHY", "LOGN", "TECH-ETF"],
+    "values": [0.96, 0.95, 0.96, 0.99]
+    },
+    {
+    "text": "Rate cuts arrive just as inflation pressure fades, giving markets exactly the macro setup they wanted. Risk appetite improves across sectors.",
+    "start_year": 2065.0,
+    "end_year": 2065.5,
+    "mode": "stock",
+    "companies": ["Apple", "J.P. Morgan", "PostFinance", "Novartis", "Bond ETF", "Global Equity ETF"],
+    "symbols": ["AAPL", "JPM", "POST", "NVS", "BOND-ETF", "GLB-ETF"],
+    "values": [1.04, 1.03, 1.03, 1.02, 1.02, 1.03]
+    },
+    {
+    "text": "After a strong run, the market finally cools and expensive names correct. The pullback is orderly but reminds players that even good stories can get overpriced.",
+    "start_year": 2066.0,
+    "end_year": 2066.5,
+    "mode": "stock",
+    "companies": ["Apple", "Tencent", "Eli Lilly", "Technology ETF"],
+    "symbols": ["AAPL", "TCEHY", "LLY", "TECH-ETF"],
+    "values": [0.97, 0.97, 0.98, 0.99]
+    },
+    {
+    "text": "A quiet year with healthy dividends and few surprises rewards diversified positioning. Nothing spectacular happens, which is exactly what long-term investors needed.",
+    "start_year": 2067.0,
+    "end_year": 2067.5,
+    "mode": "stock",
+    "companies": ["Novartis", "PostFinance", "J.P. Morgan", "Swiss Market ETF", "Bond ETF"],
+    "symbols": ["NVS", "POST", "JPM", "SMI-ETF", "BOND-ETF"],
+    "values": [1.02, 1.02, 1.02, 1.02, 1.01]
+    },
+    {
+    "text": "A city-wide disaster damages infrastructure and sends fear through the simulation layer. Investors briefly dump anything tied to economic activity and property financing.",
+    "start_year": 2068.0,
+    "end_year": 2068.5,
+    "mode": "city",
+    "companies": ["PostFinance", "J.P. Morgan", "Apple", "Swiss Market ETF"],
+    "symbols": ["POST", "JPM", "AAPL", "SMI-ETF"],
+    "values": [0.91, 0.93, 0.96, 0.97]
+    },
+    {
+    "text": "Once the scale of rebuilding becomes clear, the market rethinks the shock. Recovery spending and utility demand create a strong second-leg rebound.",
+    "start_year": 2068.5,
+    "end_year": 2069.0,
+    "mode": "city",
+    "companies": ["PostFinance", "Apple", "Logitech", "Swiss Market ETF"],
+    "symbols": ["POST", "AAPL", "LOGN", "SMI-ETF"],
+    "values": [1.06, 1.03, 1.03, 1.03]
+    },
+    {
+    "text": "Insurance payouts, reconstruction, and local commerce restore confidence faster than expected. The city layer teaches that crisis and recovery often arrive together.",
+    "start_year": 2069.0,
+    "end_year": 2069.5,
+    "mode": "city",
+    "companies": ["PostFinance", "J.P. Morgan", "Global Equity ETF"],
+    "symbols": ["POST", "JPM", "GLB-ETF"],
+    "values": [1.03, 1.02, 1.01]
+    },
+    {
+    "text": "A mundane expansion year lifts most quality assets without much drama. Players who stay invested outperform those waiting for a perfect entry.",
+    "start_year": 2070.0,
+    "end_year": 2070.5,
+    "mode": "stock",
+    "companies": ["Apple", "Novartis", "J.P. Morgan", "Global Equity ETF"],
+    "symbols": ["AAPL", "NVS", "JPM", "GLB-ETF"],
+    "values": [1.03, 1.02, 1.02, 1.02]
+    },
+    {
+    "text": "A new renewable-energy storage design improves long-run expectations for device ecosystems and cloud infrastructure. Tech sentiment turns constructive again.",
+    "start_year": 2071.0,
+    "end_year": 2071.5,
+    "mode": "stock",
+    "companies": ["Apple", "Tencent", "Technology ETF"],
+    "symbols": ["AAPL", "TCEHY", "TECH-ETF"],
+    "values": [1.04, 1.03, 1.03]
+    },
+    {
+    "text": "Large banks streamline operations after years of consolidation and finally show cleaner margins. Investors reward the discipline.",
+    "start_year": 2072.0,
+    "end_year": 2072.5,
+    "mode": "stock",
+    "companies": ["J.P. Morgan", "PostFinance", "Swiss Market ETF"],
+    "symbols": ["JPM", "POST", "SMI-ETF"],
+    "values": [1.04, 1.03, 1.02]
+    },
+    {
+    "text": "A consumer confidence wobble leads to slower upgrade cycles and softer advertising trends. Growth stocks stall for a period.",
+    "start_year": 2073.0,
+    "end_year": 2073.5,
+    "mode": "stock",
+    "companies": ["Apple", "Tencent", "Technology ETF"],
+    "symbols": ["AAPL", "TCEHY", "TECH-ETF"],
+    "values": [0.98, 0.97, 0.99]
+    },
+    {
+    "text": "Trade negotiations resume and global firms recover some of the flexibility they had lost. Sentiment improves, especially for internationally exposed names.",
+    "start_year": 2074.0,
+    "end_year": 2074.5,
+    "mode": "stock",
+    "companies": ["Apple", "Tencent", "Logitech", "Global Equity ETF", "Technology ETF"],
+    "symbols": ["AAPL", "TCEHY", "LOGN", "GLB-ETF", "TECH-ETF"],
+    "values": [1.03, 1.03, 1.03, 1.02, 1.02]
+    },
+    {
+    "text": "Investigators uncover a major fraud case involving a high-profile banking executive. The event becomes a textbook example of cluster risk in financial stocks, while diversified ETFs hold up much better.",
+    "start_year": 2075.0,
+    "end_year": 2075.5,
+    "mode": "stock",
+    "companies": ["J.P. Morgan", "Global Equity ETF", "Bond ETF"],
+    "symbols": ["JPM", "GLB-ETF", "BOND-ETF"],
+    "values": [0.92, 0.99, 1.01]
+    },
+    {
+    "text": "The rest of the market absorbs the scandal more calmly than many feared. Diversified players are reminded why concentration hurts more than volatility itself.",
+    "start_year": 2076.0,
+    "end_year": 2076.5,
+    "mode": "stock",
+    "companies": ["Novartis", "Apple", "PostFinance", "Global Equity ETF"],
+    "symbols": ["NVS", "AAPL", "POST", "GLB-ETF"],
+    "values": [1.02, 1.03, 1.01, 1.02]
+    },
+    {
+    "text": "An uneventful but productive year brings modest gains as companies execute well and inflation behaves. Markets drift upward on fundamentals.",
+    "start_year": 2077.0,
+    "end_year": 2077.5,
+    "mode": "stock",
+    "companies": ["Apple", "Eli Lilly", "ICICI Bank", "Global Equity ETF"],
+    "symbols": ["AAPL", "LLY", "IBN", "GLB-ETF"],
+    "values": [1.03, 1.03, 1.03, 1.02]
+    },
+    {
+    "text": "A breakthrough in diagnostic AI allows drug developers to cut trial timelines. Healthcare leadership broadens beyond one or two star products.",
+    "start_year": 2078.0,
+    "end_year": 2078.5,
+    "mode": "stock",
+    "companies": ["Novartis", "Eli Lilly", "Healthcare ETF"],
+    "symbols": ["NVS", "LLY", "HLTH-ETF"],
+    "values": [1.05, 1.05, 1.03]
+    },
+    {
+    "text": "A restaurant and retail sanitation scandal spreads panic through the city’s consumer districts. Traders briefly sell anything linked to urban foot traffic and spending.",
+    "start_year": 2079.0,
+    "end_year": 2079.5,
+    "mode": "city",
+    "companies": ["Apple", "PostFinance", "Swiss Market ETF"],
+    "symbols": ["AAPL", "POST", "SMI-ETF"],
+    "values": [0.97, 0.97, 0.99]
+    },
+    {
+    "text": "Once the scare fades, shoppers return faster than expected and the local economy normalizes. The rebound is modest but clear.",
+    "start_year": 2079.5,
+    "end_year": 2080.0,
+    "mode": "city",
+    "companies": ["Apple", "PostFinance", "Swiss Market ETF"],
+    "symbols": ["AAPL", "POST", "SMI-ETF"],
+    "values": [1.03, 1.02, 1.01]
+    },
+    {
+    "text": "Mature but reliable growth returns across sectors. Players who overtrade miss another year of compounding.",
+    "start_year": 2080.0,
+    "end_year": 2080.5,
+    "mode": "stock",
+    "companies": ["Novartis", "Apple", "J.P. Morgan", "Global Equity ETF"],
+    "symbols": ["NVS", "AAPL", "JPM", "GLB-ETF"],
+    "values": [1.02, 1.03, 1.02, 1.02]
+    },
+    {
+    "text": "A successful therapy platform shows strong global uptake and restores excitement to large pharma. The move is strong, but still believable.",
+    "start_year": 2081.0,
+    "end_year": 2081.5,
+    "mode": "stock",
+    "companies": ["Eli Lilly", "Novartis", "Healthcare ETF"],
+    "symbols": ["LLY", "NVS", "HLTH-ETF"],
+    "values": [1.05, 1.04, 1.03]
+    },
+    {
+    "text": "A long period of market calm encourages more risk-taking than is healthy. Valuations rise, but earnings mostly justify the move.",
+    "start_year": 2082.0,
+    "end_year": 2082.5,
+    "mode": "stock",
+    "companies": ["Apple", "Tencent", "J.P. Morgan", "Global Equity ETF"],
+    "symbols": ["AAPL", "TCEHY", "JPM", "GLB-ETF"],
+    "values": [1.03, 1.03, 1.02, 1.02]
+    },
+    {
+    "text": "Regulators revisit platform dominance and data portability. Investors cut some excess optimism from big tech valuations.",
+    "start_year": 2083.0,
+    "end_year": 2083.5,
+    "mode": "stock",
+    "companies": ["Apple", "Tencent", "Technology ETF"],
+    "symbols": ["AAPL", "TCEHY", "TECH-ETF"],
+    "values": [0.97, 0.96, 0.99]
+    },
+    {
+    "text": "The financial system proves resilient and risk premiums shrink again. A patient, diversified approach keeps working.",
+    "start_year": 2084.0,
+    "end_year": 2084.5,
+    "mode": "stock",
+    "companies": ["PostFinance", "J.P. Morgan", "Novartis", "Swiss Market ETF", "Bond ETF"],
+    "symbols": ["POST", "JPM", "NVS", "SMI-ETF", "BOND-ETF"],
+    "values": [1.02, 1.03, 1.02, 1.02, 1.01]
+    },
+    {
+    "text": "An exceptionally pleasant weather cycle boosts city optimism, tourism, and premium urban demand. In the gamified layer, skyline assets suddenly feel more desirable.",
+    "start_year": 2085.0,
+    "end_year": 2085.5,
+    "mode": "city",
+    "companies": ["Apple", "Logitech", "Swiss Market ETF"],
+    "symbols": ["AAPL", "LOGN", "SMI-ETF"],
+    "values": [1.02, 1.03, 1.01]
+    },
+    {
+    "text": "A breakthrough in orbital communications creates excitement around new device ecosystems and data infrastructure. Tech optimism rises quickly.",
+    "start_year": 2086.0,
+    "end_year": 2086.5,
+    "mode": "stock",
+    "companies": ["Apple", "Tencent", "Technology ETF"],
+    "symbols": ["AAPL", "TCEHY", "TECH-ETF"],
+    "values": [1.05, 1.04, 1.03]
+    },
+    {
+    "text": "A second-half supply bottleneck prevents companies from fully capturing demand. Markets give back part of the gains but do not collapse.",
+    "start_year": 2086.5,
+    "end_year": 2087.0,
+    "mode": "stock",
+    "companies": ["Apple", "Logitech", "Technology ETF"],
+    "symbols": ["AAPL", "LOGN", "TECH-ETF"],
+    "values": [0.97, 0.96, 0.99]
+    },
+    {
+    "text": "A stable year of execution follows the earlier excitement. Investors prefer proven cash flows over futuristic stories for a while.",
+    "start_year": 2087.0,
+    "end_year": 2087.5,
+    "mode": "stock",
+    "companies": ["Novartis", "J.P. Morgan", "PostFinance", "Swiss Market ETF"],
+    "symbols": ["NVS", "JPM", "POST", "SMI-ETF"],
+    "values": [1.02, 1.02, 1.02, 1.02]
+    },
+    {
+    "text": "Credit conditions stay friendly and default fears remain contained. Finance names quietly grind higher.",
+    "start_year": 2088.0,
+    "end_year": 2088.5,
+    "mode": "stock",
+    "companies": ["J.P. Morgan", "ICICI Bank", "PostFinance", "Global Equity ETF"],
+    "symbols": ["JPM", "IBN", "POST", "GLB-ETF"],
+    "values": [1.03, 1.03, 1.02, 1.02]
+    },
+    {
+    "text": "A global recession finally arrives after years of complacency. Almost every stock sells off as demand, confidence, and profits all weaken together, while diversified ETFs fall less than single names and bonds are more resilient.",
+    "start_year": 2089.0,
+    "end_year": 2089.5,
+    "mode": "stock",
+    "companies": ["Apple", "Tencent", "Logitech", "Novartis", "Eli Lilly", "PostFinance", "J.P. Morgan", "ICICI Bank", "Global Equity ETF", "Swiss Market ETF", "Technology ETF", "Healthcare ETF", "Bond ETF"],
+    "symbols": ["AAPL", "TCEHY", "LOGN", "NVS", "LLY", "POST", "JPM", "IBN", "GLB-ETF", "SMI-ETF", "TECH-ETF", "HLTH-ETF", "BOND-ETF"],
+    "values": [0.93, 0.93, 0.92, 0.96, 0.96, 0.94, 0.93, 0.92, 0.97, 0.97, 0.96, 0.98, 1.01]
+    },
+    {
+    "text": "Policy support prevents a deeper collapse and markets begin stabilizing before the economy visibly improves. This becomes another lesson in staying calm during downturns.",
+    "start_year": 2090.0,
+    "end_year": 2090.5,
+    "mode": "stock",
+    "companies": ["Apple", "J.P. Morgan", "ICICI Bank", "PostFinance", "Global Equity ETF", "Bond ETF"],
+    "symbols": ["AAPL", "JPM", "IBN", "POST", "GLB-ETF", "BOND-ETF"],
+    "values": [1.05, 1.04, 1.05, 1.04, 1.03, 1.01]
+    },
+    {
+    "text": "Recovery broadens as inventories rebuild and confidence returns. Boring diversification beats heroic stock-picking stories this year.",
+    "start_year": 2091.0,
+    "end_year": 2091.5,
+    "mode": "stock",
+    "companies": ["Novartis", "Apple", "Tencent", "PostFinance", "Global Equity ETF"],
+    "symbols": ["NVS", "AAPL", "TCEHY", "POST", "GLB-ETF"],
+    "values": [1.03, 1.04, 1.04, 1.03, 1.03]
+    },
+    {
+    "text": "The market enters a long, moderate-growth phase with fewer shocks than usual. Returns are not dramatic, but they compound well.",
+    "start_year": 2092.0,
+    "end_year": 2092.5,
+    "mode": "stock",
+    "companies": ["Apple", "Novartis", "J.P. Morgan", "Global Equity ETF"],
+    "symbols": ["AAPL", "NVS", "JPM", "GLB-ETF"],
+    "values": [1.02, 1.02, 1.02, 1.02]
+    },
+    {
+    "text": "A new manufacturing process lowers hardware waste and improves margins. Select tech firms benefit without triggering a full market mania.",
+    "start_year": 2093.0,
+    "end_year": 2093.5,
+    "mode": "stock",
+    "companies": ["Apple", "Logitech", "Technology ETF"],
+    "symbols": ["AAPL", "LOGN", "TECH-ETF"],
+    "values": [1.04, 1.04, 1.03]
+    },
+    {
+    "text": "Healthcare spending rises gradually as populations age and treatment standards improve. Pharma remains a slow but dependable winner.",
+    "start_year": 2094.0,
+    "end_year": 2094.5,
+    "mode": "stock",
+    "companies": ["Novartis", "Eli Lilly", "Healthcare ETF"],
+    "symbols": ["NVS", "LLY", "HLTH-ETF"],
+    "values": [1.03, 1.03, 1.02]
+    },
+    {
+    "text": "A short-lived currency shock creates volatility in internationally exposed names. The move is sharp enough to matter, but too brief to define the decade.",
+    "start_year": 2095.0,
+    "end_year": 2095.5,
+    "mode": "stock",
+    "companies": ["Tencent", "ICICI Bank", "Apple", "Global Equity ETF"],
+    "symbols": ["TCEHY", "IBN", "AAPL", "GLB-ETF"],
+    "values": [0.97, 0.96, 0.98, 0.99]
+    },
+    {
+    "text": "The currency scare fades and capital rotates back into quality balance sheets. Diversified players recover most of the temporary drawdown.",
+    "start_year": 2096.0,
+    "end_year": 2096.5,
+    "mode": "stock",
+    "companies": ["Novartis", "Apple", "J.P. Morgan", "Global Equity ETF"],
+    "symbols": ["NVS", "AAPL", "JPM", "GLB-ETF"],
+    "values": [1.02, 1.03, 1.02, 1.02]
+    },
+    {
+    "text": "A year of disciplined execution and low drama supports healthy compounding. The market reminds players that steady years matter most.",
+    "start_year": 2097.0,
+    "end_year": 2097.5,
+    "mode": "stock",
+    "companies": ["Apple", "PostFinance", "Eli Lilly", "Global Equity ETF"],
+    "symbols": ["AAPL", "POST", "LLY", "GLB-ETF"],
+    "values": [1.03, 1.02, 1.03, 1.02]
+    },
+    {
+    "text": "A charismatic political outsider wins office and begins making erratic economic announcements. Markets become difficult to predict, especially for finance and international tech.",
+    "start_year": 2098.0,
+    "end_year": 2098.5,
+    "mode": "stock",
+    "companies": ["Tencent", "J.P. Morgan", "ICICI Bank", "Global Equity ETF"],
+    "symbols": ["TCEHY", "JPM", "IBN", "GLB-ETF"],
+    "values": [0.96, 0.97, 0.96, 0.99]
+    },
+    {
+    "text": "In the second half, investors realize the rhetoric is worse than the actual policy. Some of the uncertainty discount fades.",
+    "start_year": 2098.5,
+    "end_year": 2099.0,
+    "mode": "stock",
+    "companies": ["Tencent", "J.P. Morgan", "Global Equity ETF"],
+    "symbols": ["TCEHY", "JPM", "GLB-ETF"],
+    "values": [1.03, 1.02, 1.01]
+    },
+    {
+    "text": "A calm post-election year allows fundamentals to matter again. Quality firms quietly retake leadership.",
+    "start_year": 2099.0,
+    "end_year": 2099.5,
+    "mode": "stock",
+    "companies": ["Apple", "Novartis", "PostFinance", "Swiss Market ETF"],
+    "symbols": ["AAPL", "NVS", "POST", "SMI-ETF"],
+    "values": [1.03, 1.02, 1.02, 1.02]
+    },
+    {
+    "text": "A massive AI breakthrough arrives faster than experts expected and reshapes entire industries. Tech leaders surge as the market prices in a new productivity era.",
+    "start_year": 2100.0,
+    "end_year": 2100.5,
+    "mode": "stock",
+    "companies": ["Apple", "Tencent", "Logitech", "Technology ETF", "Global Equity ETF"],
+    "symbols": ["AAPL", "TCEHY", "LOGN", "TECH-ETF", "GLB-ETF"],
+    "values": [1.08, 1.07, 1.07, 1.04, 1.03]
+    },
+    {
+    "text": "The next year, adoption continues but at a more measured pace as companies learn how to monetize the leap. The rally broadens into more selective winners.",
+    "start_year": 2101.0,
+    "end_year": 2101.5,
+    "mode": "stock",
+    "companies": ["Apple", "Tencent", "Technology ETF"],
+    "symbols": ["AAPL", "TCEHY", "TECH-ETF"],
+    "values": [1.04, 1.04, 1.03]
+    },
+    {
+    "text": "A valuation reset follows the initial excitement, though underlying demand remains strong. Players who chased headlines too late feel the difference between trend and price.",
+    "start_year": 2102.0,
+    "end_year": 2102.5,
+    "mode": "stock",
+    "companies": ["Apple", "Logitech", "Technology ETF"],
+    "symbols": ["AAPL", "LOGN", "TECH-ETF"],
+    "values": [0.97, 0.96, 0.99]
+    },
+    {
+    "text": "The economy absorbs the AI shift better than feared and new productivity gains support earnings. Markets resume a healthier climb.",
+    "start_year": 2103.0,
+    "end_year": 2103.5,
+    "mode": "stock",
+    "companies": ["Apple", "J.P. Morgan", "Tencent", "Global Equity ETF"],
+    "symbols": ["AAPL", "JPM", "TCEHY", "GLB-ETF"],
+    "values": [1.04, 1.02, 1.03, 1.02]
+    },
+    {
+    "text": "Healthcare firms begin using AI-assisted research pipelines at scale. Drug development timelines improve enough to matter for valuation.",
+    "start_year": 2104.0,
+    "end_year": 2104.5,
+    "mode": "stock",
+    "companies": ["Novartis", "Eli Lilly", "Healthcare ETF"],
+    "symbols": ["NVS", "LLY", "HLTH-ETF"],
+    "values": [1.04, 1.05, 1.03]
+    },
+    {
+    "text": "Public frustration over inequality leads to new taxes and tighter oversight of dominant firms. The market digests a more regulated era.",
+    "start_year": 2105.0,
+    "end_year": 2105.5,
+    "mode": "stock",
+    "companies": ["Apple", "Tencent", "J.P. Morgan", "Global Equity ETF"],
+    "symbols": ["AAPL", "TCEHY", "JPM", "GLB-ETF"],
+    "values": [0.97, 0.96, 0.98, 0.99]
+    },
+    {
+    "text": "The new rules settle into place and fears of a policy spiral ease. Investors stop pricing in worst-case scenarios.",
+    "start_year": 2106.0,
+    "end_year": 2106.5,
+    "mode": "stock",
+    "companies": ["Apple", "Novartis", "PostFinance", "Swiss Market ETF"],
+    "symbols": ["AAPL", "NVS", "POST", "SMI-ETF"],
+    "values": [1.02, 1.02, 1.02, 1.01]
+    },
+    {
+    "text": "Another city-level policy shock hits when the orange mayor redraws districts and flips tax priorities overnight. The randomness hurts confidence more than the actual rule changes.",
+    "start_year": 2107.0,
+    "end_year": 2107.5,
+    "mode": "city",
+    "companies": ["PostFinance", "Apple", "Tencent", "Swiss Market ETF"],
+    "symbols": ["POST", "AAPL", "TCEHY", "SMI-ETF"],
+    "values": [0.97, 0.98, 0.97, 0.99]
+    },
+    {
+    "text": "By the next half-year, residents and businesses adapt and the panic proves excessive. Diversified holders recover while speculators are whipsawed.",
+    "start_year": 2107.5,
+    "end_year": 2108.0,
+    "mode": "city",
+    "companies": ["PostFinance", "Apple", "Swiss Market ETF"],
+    "symbols": ["POST", "AAPL", "SMI-ETF"],
+    "values": [1.03, 1.02, 1.01]
+    },
+    {
+    "text": "The broader market returns to a balanced growth regime. Quiet compounding resumes.",
+    "start_year": 2108.0,
+    "end_year": 2108.5,
+    "mode": "stock",
+    "companies": ["Novartis", "Apple", "J.P. Morgan", "Global Equity ETF"],
+    "symbols": ["NVS", "AAPL", "JPM", "GLB-ETF"],
+    "values": [1.02, 1.03, 1.02, 1.02]
+    },
+    {
+    "text": "Payment systems become more efficient and cross-border finance friction declines. Banks benefit from scale and improved throughput.",
+    "start_year": 2109.0,
+    "end_year": 2109.5,
+    "mode": "stock",
+    "companies": ["J.P. Morgan", "ICICI Bank", "PostFinance", "Global Equity ETF"],
+    "symbols": ["JPM", "IBN", "POST", "GLB-ETF"],
+    "values": [1.03, 1.03, 1.02, 1.02]
+    },
+    {
+    "text": "A well-telegraphed slowdown arrives but does not become a crisis. Investors rotate rather than panic.",
+    "start_year": 2110.0,
+    "end_year": 2110.5,
+    "mode": "stock",
+    "companies": ["Apple", "Tencent", "Logitech", "Technology ETF"],
+    "symbols": ["AAPL", "TCEHY", "LOGN", "TECH-ETF"],
+    "values": [0.98, 0.98, 0.97, 0.99]
+    },
+    {
+    "text": "The slowdown passes and the market resumes its upward drift. Staying invested once again beats trying to time every wobble.",
+    "start_year": 2111.0,
+    "end_year": 2111.5,
+    "mode": "stock",
+    "companies": ["Novartis", "Apple", "J.P. Morgan", "Global Equity ETF"],
+    "symbols": ["NVS", "AAPL", "JPM", "GLB-ETF"],
+    "values": [1.02, 1.03, 1.02, 1.02]
+    },
+    {
+    "text": "A year of strong execution in healthcare and finance lifts quality names without much excitement. Players with patience are rewarded.",
+    "start_year": 2112.0,
+    "end_year": 2112.5,
+    "mode": "stock",
+    "companies": ["Eli Lilly", "PostFinance", "J.P. Morgan", "Healthcare ETF", "Swiss Market ETF"],
+    "symbols": ["LLY", "POST", "JPM", "HLTH-ETF", "SMI-ETF"],
+    "values": [1.03, 1.02, 1.02, 1.02, 1.01]
+    },
+    {
+    "text": "A modest inventory correction briefly hits device makers. It matters for the quarter, not for the decade.",
+    "start_year": 2113.0,
+    "end_year": 2113.5,
+    "mode": "stock",
+    "companies": ["Apple", "Logitech", "Technology ETF"],
+    "symbols": ["AAPL", "LOGN", "TECH-ETF"],
+    "values": [0.98, 0.97, 0.99]
+    },
+    {
+    "text": "A stable demand backdrop allows earnings to catch up with valuations. Long-term sentiment improves again.",
+    "start_year": 2114.0,
+    "end_year": 2114.5,
+    "mode": "stock",
+    "companies": ["Apple", "Novartis", "Tencent", "Global Equity ETF"],
+    "symbols": ["AAPL", "NVS", "TCEHY", "GLB-ETF"],
+    "values": [1.03, 1.02, 1.02, 1.02]
+    },
+    {
+    "text": "Healthcare reaches a new efficiency plateau as diagnostics and production become cheaper and faster. Pharma names enjoy another reliable step upward.",
+    "start_year": 2115.0,
+    "end_year": 2115.5,
+    "mode": "stock",
+    "companies": ["Novartis", "Eli Lilly", "Healthcare ETF"],
+    "symbols": ["NVS", "LLY", "HLTH-ETF"],
+    "values": [1.04, 1.04, 1.03]
+    },
+    {
+    "text": "The following year is calmer, with markets gradually appreciating the durability of those gains. Nothing flashy happens, and that helps.",
+    "start_year": 2116.0,
+    "end_year": 2116.5,
+    "mode": "stock",
+    "companies": ["Novartis", "Apple", "PostFinance", "Swiss Market ETF"],
+    "symbols": ["NVS", "AAPL", "POST", "SMI-ETF"],
+    "values": [1.02, 1.02, 1.02, 1.01]
+    },
+    {
+    "text": "A broad but shallow global expansion lifts most diversified portfolios. Concentrated bets lag unless they happen to be in the right niche.",
+    "start_year": 2117.0,
+    "end_year": 2117.5,
+    "mode": "stock",
+    "companies": ["Apple", "Tencent", "J.P. Morgan", "Novartis", "Global Equity ETF"],
+    "symbols": ["AAPL", "TCEHY", "JPM", "NVS", "GLB-ETF"],
+    "values": [1.03, 1.03, 1.02, 1.02, 1.02]
+    },
+    {
+    "text": "A minor slowdown takes some heat out of the market after several healthy years. The dip is manageable and short.",
+    "start_year": 2118.0,
+    "end_year": 2118.5,
+    "mode": "stock",
+    "companies": ["Apple", "Tencent", "ICICI Bank", "Global Equity ETF"],
+    "symbols": ["AAPL", "TCEHY", "IBN", "GLB-ETF"],
+    "values": [0.98, 0.98, 0.97, 0.99]
+    },
+    {
+    "text": "A fresh cyber-fraud scandal hits one internationally active company and reminds everyone that governance risk never disappears. The damage is sharp but concentrated.",
+    "start_year": 2119.0,
+    "end_year": 2119.5,
+    "mode": "stock",
+    "companies": ["Tencent", "Technology ETF"],
+    "symbols": ["TCEHY", "TECH-ETF"],
+    "values": [0.93, 0.98]
+    },
+    {
+    "text": "The rest of the market proves resilient, and diversified investors barely flinch. The lesson on single-stock fragility becomes explicit again.",
+    "start_year": 2119.5,
+    "end_year": 2120.0,
+    "mode": "stock",
+    "companies": ["Novartis", "Apple", "J.P. Morgan", "Global Equity ETF", "Bond ETF"],
+    "symbols": ["NVS", "AAPL", "JPM", "GLB-ETF", "BOND-ETF"],
+    "values": [1.02, 1.02, 1.02, 1.01, 1.01]
+    },
+    {
+    "text": "A long era of stability begins to set in. Returns are modest, but drawdowns are rare and patience is rewarded.",
+    "start_year": 2120.0,
+    "end_year": 2120.5,
+    "mode": "stock",
+    "companies": ["Apple", "Novartis", "PostFinance", "Global Equity ETF", "Bond ETF"],
+    "symbols": ["AAPL", "NVS", "POST", "GLB-ETF", "BOND-ETF"],
+    "values": [1.02, 1.02, 1.02, 1.02, 1.01]
+    },
+    {
+    "text": "Incremental innovation in medical manufacturing improves sector margins again. Healthcare continues to be a ballast in mixed markets.",
+    "start_year": 2121.0,
+    "end_year": 2121.5,
+    "mode": "stock",
+    "companies": ["Novartis", "Eli Lilly", "Healthcare ETF"],
+    "symbols": ["NVS", "LLY", "HLTH-ETF"],
+    "values": [1.03, 1.03, 1.02]
+    },
+    {
+    "text": "Finance firms benefit from years of digital cleanup and more efficient capital allocation. It is not exciting, but it works.",
+    "start_year": 2122.0,
+    "end_year": 2122.5,
+    "mode": "stock",
+    "companies": ["J.P. Morgan", "PostFinance", "ICICI Bank", "Global Equity ETF"],
+    "symbols": ["JPM", "POST", "IBN", "GLB-ETF"],
+    "values": [1.03, 1.02, 1.03, 1.02]
+    },
+    {
+    "text": "A minor regulatory review hits the tech sector, but the measures are softer than expected. Markets wobble, then move on.",
+    "start_year": 2123.0,
+    "end_year": 2123.5,
+    "mode": "stock",
+    "companies": ["Apple", "Tencent", "Logitech", "Technology ETF"],
+    "symbols": ["AAPL", "TCEHY", "LOGN", "TECH-ETF"],
+    "values": [0.99, 0.98, 0.99, 0.995]
+    },
+    {
+    "text": "Economic momentum remains healthy and diversified exposure keeps paying off. The absence of drama becomes part of the game’s lesson.",
+    "start_year": 2124.0,
+    "end_year": 2124.5,
+    "mode": "stock",
+    "companies": ["Apple", "Novartis", "J.P. Morgan", "Global Equity ETF"],
+    "symbols": ["AAPL", "NVS", "JPM", "GLB-ETF"],
+    "values": [1.02, 1.02, 1.02, 1.02]
+    },
+    {
+    "text": "A good-weather boom lifts the city mood and spending activity once more in the gamified layer. Optimism spills modestly into selected names.",
+    "start_year": 2125.0,
+    "end_year": 2125.5,
+    "mode": "city",
+    "companies": ["Apple", "PostFinance", "Swiss Market ETF"],
+    "symbols": ["AAPL", "POST", "SMI-ETF"],
+    "values": [1.02, 1.02, 1.01]
+    },
+    {
+    "text": "An otherwise average year reinforces the same truth as before: time in the market beats waiting on the sidelines. Broad exposure wins quietly.",
+    "start_year": 2126.0,
+    "end_year": 2126.5,
+    "mode": "stock",
+    "companies": ["Apple", "Novartis", "J.P. Morgan", "ICICI Bank", "Global Equity ETF", "Bond ETF"],
+    "symbols": ["AAPL", "NVS", "JPM", "IBN", "GLB-ETF", "BOND-ETF"],
+    "values": [1.02, 1.02, 1.02, 1.02, 1.02, 1.01]
+    },
+    {
+    "text": "The century closes with a calm expansion and stable sentiment across sectors. Nothing spectacular happens, and that is exactly why long-term investors finish strong.",
+    "start_year": 2127.0,
+    "end_year": 2127.5,
+    "mode": "stock",
+    "companies": ["Apple", "Novartis", "Eli Lilly", "PostFinance", "Global Equity ETF", "Bond ETF"],
+    "symbols": ["AAPL", "NVS", "LLY", "POST", "GLB-ETF", "BOND-ETF"],
+    "values": [1.02, 1.02, 1.02, 1.02, 1.02, 1.01]
+    }
+    ]

@@ -1,7 +1,7 @@
 'use client';
-import { Canvas, ThreeEvent, useFrame, useLoader } from '@react-three/fiber';
+import { Canvas, ThreeEvent, useFrame, useLoader, useThree } from '@react-three/fiber';
 import { Html, OrbitControls } from '@react-three/drei';
-import { Suspense, useEffect, useMemo, useReducer, useRef } from 'react';
+import { Fragment, Suspense, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { MTLLoader, OBJLoader } from 'three-stdlib';
 import {
@@ -18,10 +18,37 @@ import { Line } from 'react-chartjs-2';
 import { AssetPanel } from './components/AssetPanel';
 import { Hud } from './components/Hud';
 import { gameReducer, createInitialState } from '../game/reducer';
-import { Asset } from '../game/types';
+import { Asset, Market, Sector, VolatilityLabel } from '../game/types';
 import { visualFor, roadVisuals } from '../game/visuals';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
+
+// Cached edge geometries so selecting roads/countries doesn't repeatedly rebuild outlines.
+const edgesGeometryCache = new WeakMap<THREE.BufferGeometry, THREE.EdgesGeometry>();
+const roadOutlineLineMaterial = new THREE.LineBasicMaterial({
+  color: 0xffc193,
+  transparent: true,
+  opacity: 0.95,    
+  depthTest: true,
+  depthWrite: false,
+  toneMapped: false,
+});
+const roadInvisibleFillMaterial = new THREE.MeshBasicMaterial({
+  transparent: true,
+  opacity: 0,
+  depthTest: true,
+  depthWrite: false,
+  toneMapped: false,
+});
+
+function getEdgesGeometry(geometry: THREE.BufferGeometry): THREE.EdgesGeometry {
+  const cached = edgesGeometryCache.get(geometry);
+  if (cached) return cached;
+  // Threshold controls how “aggressive” the outline is; keep low for thin, clean edges.
+  const edges = new THREE.EdgesGeometry(geometry, 1);
+  edgesGeometryCache.set(geometry, edges);
+  return edges;
+}
 
 const chartOptions = {
   responsive: true,
@@ -47,6 +74,8 @@ const chartOptions = {
     },
   },
 } as const;
+
+type Difficulty = 'min' | 'mid' | 'max';
 
 function useObjWithMtl(opts: { obj: string; mtl: string; resourcePath: string }) {
   const materials = useLoader(MTLLoader, opts.mtl, (loader) => {
@@ -79,15 +108,21 @@ function useObjWithMtl(opts: { obj: string; mtl: string; resourcePath: string })
         };
         if (anyMat.map) {
           anyMat.map.colorSpace = THREE.SRGBColorSpace;
-          anyMat.map.flipY = true;
-        
+          // Don't force flipY globally; some loaders/textures already come correctly oriented.
+          // Leaving the default preserves consistent UV/texture mapping across assets.
+
+          // Avoid shimmering/aliasing while orbiting/zooming:
+          // Avoid black/incomplete-mipmaps behavior by not relying on mipmaps.
           anyMat.map.generateMipmaps = false;
-          anyMat.map.minFilter = THREE.NearestFilter;
-          anyMat.map.magFilter = THREE.NearestFilter;
-        
-          anyMat.map.wrapS = THREE.ClampToEdgeWrapping;
-          anyMat.map.wrapT = THREE.ClampToEdgeWrapping;
-        
+          anyMat.map.minFilter = THREE.LinearFilter;
+          anyMat.map.magFilter = THREE.LinearFilter;
+
+          anyMat.map.anisotropy = Math.min(8, anyMat.map.anisotropy || 1);
+          // Respect UV wrapping behavior. Clamping can cause edge stretching artifacts
+          // when UVs are outside [0..1] or when models rely on repeating.
+          anyMat.map.wrapS = THREE.RepeatWrapping;
+          anyMat.map.wrapT = THREE.RepeatWrapping;
+
           anyMat.map.needsUpdate = true;
         }
         // MTLLoader often creates MeshPhongMaterial which can blow out under strong lights.
@@ -109,6 +144,9 @@ function useObjWithMtl(opts: { obj: string; mtl: string; resourcePath: string })
 type MapHouse = {
   id: string;
   type: string;
+  companyName?: string;
+  country?: string;
+  sector?: string;
   position: [number, number, number];
   rotation: [number, number, number, number]; // quaternion x,y,z,w
   scale: [number, number, number];
@@ -149,6 +187,8 @@ function SelectableBuilding({
   assetType,
   showInvestableOutline,
   uiMode,
+  interactionsEnabled,
+  colormapTexture,
   position,
   rotY,
   onToggle,
@@ -159,9 +199,13 @@ function SelectableBuilding({
   base: THREE.Object3D;
   selected: boolean;
   locked: boolean;
-  assetType: 'stock' | 'etf';
+  assetType: 'stock' | 'etf' | 'property';
   showInvestableOutline: boolean;
   uiMode: 'city' | 'stocks';
+  interactionsEnabled: boolean;
+  // When provided, we override the material's map_Kd to enforce sector-based coloring.
+  // When omitted, we keep whatever map_Kd came from the original MTL (e.g. private property).
+  colormapTexture?: THREE.Texture;
   position: [number, number, number];
   rotY: number;
   onToggle: (id: string) => void;
@@ -173,16 +217,30 @@ function SelectableBuilding({
     c.traverse((child) => {
       if (!(child instanceof THREE.Mesh)) return;
       if (Array.isArray(child.material)) {
-        child.material = child.material.map((m) => m.clone());
+        child.material = child.material.map((m) => {
+          const cloned = m.clone();
+          const anyMat = cloned as unknown as { map?: THREE.Texture | null };
+          if (colormapTexture) {
+            anyMat.map = colormapTexture;
+            anyMat.map.needsUpdate = true;
+          }
+          return cloned;
+        });
       } else {
-        child.material = child.material.clone();
+        const cloned = child.material.clone();
+        const anyMat = cloned as unknown as { map?: THREE.Texture | null };
+        if (colormapTexture) {
+          anyMat.map = colormapTexture;
+          anyMat.map.needsUpdate = true;
+        }
+        child.material = cloned;
       }
     });
     return c;
   };
 
   // Stable clones so we don't regenerate meshes every render.
-  const model = useMemo(() => cloneWithUniqueMaterials(base), [base]);
+  const model = useMemo(() => cloneWithUniqueMaterials(base), [base, colormapTexture]);
   const lockedModel = useMemo(() => {
     const m = cloneWithUniqueMaterials(base);
     m.traverse((child) => {
@@ -190,6 +248,7 @@ function SelectableBuilding({
       const mats = Array.isArray(child.material) ? child.material : [child.material];
       for (const mat of mats) {
         const anyMat = mat as unknown as {
+          map?: THREE.Texture | null;
           transparent?: boolean;
           opacity?: number;
           color?: THREE.Color;
@@ -197,23 +256,21 @@ function SelectableBuilding({
           needsUpdate?: boolean;
         };
         anyMat.transparent = true;
-        anyMat.opacity = 0.28;
-        if (anyMat.color) anyMat.color = anyMat.color.clone().multiplyScalar(0.55);
-        if (anyMat.emissive) anyMat.emissive = anyMat.emissive.clone().multiplyScalar(0.2);
+          // Keep locked buildings visibly "disabled" without crushing the texture tint.
+          // (Let the map_Kd drive the actual coloring.)
+        // Enough opacity so map_Kd colormaps remain clearly visible.
+        anyMat.opacity = 0.62;
+        if (anyMat.map) anyMat.map.needsUpdate = true;
         if (anyMat.needsUpdate !== undefined) anyMat.needsUpdate = true;
       }
     });
     return m;
-  }, [base]);
+  }, [base, colormapTexture]);
   const investableOutline = useMemo(() => createOutlineClone(base, outlineMaterial), [base, outlineMaterial]);
   const selectedOutline = useMemo(
     () => createOutlineClone(base, selectedOutlineMaterial),
     [base, selectedOutlineMaterial],
   );
-
-  // Stronger visual cue for investable buildings (esp. the first unlocked one).
-  const markerColor = assetType === 'stock' ? '#ffe08a' : '#b4dcff';
-  const markerOpacity = locked ? 0.14 : assetType === 'stock' ? 0.8 : 0.55;
 
   return (
     <group
@@ -221,44 +278,17 @@ function SelectableBuilding({
       rotation={[0, rotY, 0]}
       onPointerDown={(e: ThreeEvent<PointerEvent>) => {
         if (uiMode !== 'city') return;
-        if (locked) return;
+        if (!interactionsEnabled) return;
+        // Properties are selectable but not buyable.
+        if (locked && assetType !== 'property') return;
         e.stopPropagation();
         onToggle(id);
       }}
     >
-      {/* Ground marker + outlines are only shown in City mode */}
-      {uiMode === 'city' && (
-        <group position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <mesh>
-            <ringGeometry args={[0.46, 0.62, 40]} />
-            <meshBasicMaterial
-              color={markerColor}
-              transparent
-              opacity={markerOpacity}
-              depthWrite={false}
-              toneMapped={false}
-            />
-          </mesh>
-          {assetType === 'stock' && !locked && (
-            <mesh>
-              <circleGeometry args={[0.38, 40]} />
-              <meshBasicMaterial
-                color={markerColor}
-                transparent
-                opacity={0.12}
-                depthWrite={false}
-                toneMapped={false}
-              />
-            </mesh>
-          )}
-        </group>
-      )}
+      {/* Ground markers removed; selection uses outlines only. */}
 
-      {uiMode === 'city' && !locked && showInvestableOutline && !selected && (
-        <primitive object={investableOutline} scale={1.05} />
-      )}
-      {uiMode === 'city' && !locked && selected && <primitive object={selectedOutline} scale={1.03} />}
-      <primitive object={locked ? lockedModel : model} />
+      {uiMode === 'city' && selected && <primitive object={selectedOutline} scale={1.03} />}
+      <primitive object={locked && assetType !== 'property' ? lockedModel : model} />
     </group>
   );
 }
@@ -269,31 +299,53 @@ function TickerBubble({
   selected,
   position,
   onSelect,
+  interactionsEnabled,
+  size = 92,
+  variant = 'stock',
 }: {
   symbol: string;
   locked: boolean;
   selected: boolean;
   position: [number, number, number];
   onSelect: () => void;
+  interactionsEnabled: boolean;
+  size?: number;
+  variant?: 'stock' | 'etf' | 'country-etf';
 }) {
+  const bg =
+    variant === 'country-etf'
+      ? 'rgba(255,193,133,0.14)' // very light orange
+      : variant === 'etf'
+        ? 'rgba(125,211,252,0.14)'
+        : 'rgba(255,255,255,0.16)';
+  const border =
+    variant === 'country-etf'
+      ? 'rgba(255,193,133,0.55)'
+      : variant === 'etf'
+        ? 'rgba(125,211,252,0.55)'
+        : 'rgba(255,255,255,0.40)';
+  const selectedBorder = variant === 'country-etf' ? 'rgba(255,193,133,0.95)' : 'rgba(125,211,252,0.85)';
+  const fontSize = Math.round(size * 0.17);
+
   return (
     <Html position={position} center distanceFactor={10} style={{ pointerEvents: locked ? 'none' : 'auto' }}>
       <div
         onPointerDown={(e) => {
+          if (!interactionsEnabled) return;
           if (locked) return;
           e.stopPropagation();
           onSelect();
         }}
         style={{
-          width: 76,
-          height: 76,
+          width: size,
+          height: size,
           borderRadius: 999,
-          background: locked ? 'rgba(20,24,31,0.55)' : 'rgba(255,255,255,0.16)',
+          background: locked ? 'rgba(20,24,31,0.55)' : bg,
           border: locked
             ? '1px solid rgba(255,255,255,0.12)'
             : selected
-              ? '1px solid rgba(125,211,252,0.85)'
-              : '1px solid rgba(255,255,255,0.40)',
+              ? `1px solid ${selectedBorder}`
+              : `1px solid ${border}`,
           backdropFilter: 'blur(10px)',
           WebkitBackdropFilter: 'blur(10px)',
           display: 'flex',
@@ -302,7 +354,7 @@ function TickerBubble({
           color: locked ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.96)',
           fontWeight: 950,
           letterSpacing: '0.10em',
-          fontSize: 13,
+          fontSize,
           lineHeight: '1',
           textAlign: 'center',
           boxShadow: locked ? 'none' : '0 12px 34px rgba(0,0,0,0.28)',
@@ -319,6 +371,275 @@ function TickerBubble({
 function normalizeTypeName(type: string) {
   // "building-d (2)" -> "building-d"
   return type.replace(/\s*\(\d+\)\s*$/, '');
+}
+
+function mapCountryToMarket(country?: string): Market {
+  switch (country) {
+    case 'e':
+      return 'Emerging Markets';
+    case 's':
+      return 'Switzerland';
+    case 'a':
+      return 'USA';
+    default:
+      return 'Global';
+  }
+}
+
+function mapSectorKeyToSector(sectorKey?: string): Sector {
+  switch (sectorKey) {
+    case 't':
+      return 'Technology';
+    case 'f':
+      return 'Finance';
+    case 'h':
+      return 'Healthcare';
+    default:
+      return 'Broad Market';
+  }
+}
+
+function hashStringToInt(s: string): number {
+  // Simple deterministic hash for stable-but-varied asset parameters.
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return Math.abs(h);
+}
+
+function volatilityLabelForStock(companyName: string): Exclude<VolatilityLabel, 'stable'> {
+  const r = hashStringToInt(companyName) % 3;
+  return r === 0 ? 'high' : r === 1 ? 'medium' : 'low';
+}
+
+function createVolatilityValueFromLabel(label: VolatilityLabel): number {
+  switch (label) {
+    case 'low':
+      return 0.08;
+    case 'medium':
+      return 0.12;
+    case 'high':
+      return 0.22;
+    case 'stable':
+      return 0.03;
+  }
+}
+
+function isBuildingHouse(h: MapHouse) {
+  const base = normalizeTypeName(h.type);
+  if (base.startsWith('road-')) return false;
+  if (base.startsWith('building-')) return true;
+  if (base.startsWith('comm-building-')) return true;
+  if (base.startsWith('building-type-')) return true;
+  return false;
+}
+
+function createAssetsFromMap(map: MapJson): Record<string, Asset> {
+  const houses = map.houses.filter(isBuildingHouse);
+
+  const tickerToFullName: Record<string, string> = {
+    // Your current examples
+    NVS: 'Novartis',
+    PFE: 'Pfizer',
+    ZLAB: 'Zai Lab',
+    LOGI: 'Logitech',
+    AAPL: 'Apple',
+    TCEHY: 'Tencent',
+    POST: 'PostFinance',
+    JPM: 'J.P. Morgan',
+    IBN: 'ICICI Bank',
+
+    // Older/shorthand keys that exist in some map.json variants
+    NOV: 'Novartis',
+    ELi: 'Eli Lilly',
+    ELI: 'Eli Lilly',
+    AAP: 'Apple',
+    TEN: 'Tencent',
+    JP: 'J.P. Morgan',
+    ICI: 'ICICI Bank',
+    ZAI: 'Zai Lab',
+  };
+
+  const companyHouses = new Map<string, MapHouse[]>();
+  const sectorHouses = new Map<string, MapHouse[]>();
+
+  for (const h of houses) {
+    const company = h.companyName ?? h.id;
+    const sectorKey = h.sector ?? 'DummySector';
+    if (!companyHouses.has(company)) companyHouses.set(company, []);
+    companyHouses.get(company)!.push(h);
+    if (!sectorHouses.has(sectorKey)) sectorHouses.set(sectorKey, []);
+    sectorHouses.get(sectorKey)!.push(h);
+  }
+
+  // DummyCompany buildings are private, non-tradable property (not stocks).
+  const propertyById = new Map<string, Asset>();
+  for (const h of houses) {
+    if (h.companyName !== 'DummyCompany') continue;
+    const market = mapCountryToMarket(h.country);
+    const sector = mapSectorKeyToSector(h.sector);
+    const basePrice = 10 + (hashStringToInt(h.id) % 40);
+    const id = `property-${h.id}`;
+
+    propertyById.set(id, {
+      id,
+      name: 'Private property',
+      displayName: 'Private property',
+      symbol: 'PROP',
+      type: 'property',
+      market,
+      sector,
+      buildingVisualType: 'Office',
+      basePrice,
+      currentPrice: basePrice,
+      yearlyDrift: 0,
+      volatilityLabel: 'stable',
+      volatility: 0.03,
+      peRatio: 0,
+      description: 'Private property. It cannot be bought or sold.',
+      unlocked: false,
+      sharesOwned: 0,
+      totalCostBasis: 0,
+      priceHistory: [{ year: 2026, price: basePrice }],
+      categoryTags: ['market', 'sector'],
+    });
+  }
+
+  const stocksById = new Map<string, Asset>();
+  for (const [companyName, members] of companyHouses.entries()) {
+    if (companyName === 'DummyCompany') continue;
+    const any = members[0];
+    const volatilityLabel = volatilityLabelForStock(companyName);
+    const sector = mapSectorKeyToSector(any.sector);
+    const market = mapCountryToMarket(any.country);
+    const ticker = companyName.toUpperCase();
+    const fullName = tickerToFullName[ticker] ?? companyName;
+    const basePrice = 45 + (hashStringToInt(companyName) % 160);
+    const peRatio = 10 + (hashStringToInt(companyName + ':pe') % 30);
+
+    stocksById.set(companyName, {
+      id: companyName,
+      name: companyName,
+      displayName: fullName,
+      symbol: ticker,
+      type: 'stock',
+      market,
+      sector,
+      buildingVisualType: 'Hospital',
+      basePrice,
+      currentPrice: basePrice,
+      yearlyDrift: 0.06,
+      volatilityLabel,
+      volatility: createVolatilityValueFromLabel(volatilityLabel),
+      peRatio,
+      description: 'A company stock. Volatility depends on its risk profile.',
+      unlocked: true,
+      sharesOwned: 0,
+      totalCostBasis: 0,
+      priceHistory: [{ year: 2026, price: basePrice }],
+      categoryTags: ['volatility', 'market', 'sector'],
+    });
+  }
+
+  const etfsById = new Map<string, Asset>();
+  for (const [sectorKey, members] of sectorHouses.entries()) {
+    const sector = mapSectorKeyToSector(sectorKey);
+    const underlyingCompanies = new Set<string>(
+      members.map((m) => m.companyName ?? m.id).filter((c) => c !== 'DummyCompany'),
+    );
+    const underlyingVol = Array.from(underlyingCompanies)
+      .map((company) => stocksById.get(company))
+      .filter(Boolean) as Asset[];
+
+    if (underlyingVol.length === 0) continue;
+    const avgVol = underlyingVol.reduce((a, s) => a + s.volatility, 0) / underlyingVol.length;
+    const volatilityLabel: VolatilityLabel = 'stable';
+    const volatility = Math.max(0.01, avgVol * 0.25);
+
+    const id = `etf-${sector}`;
+    const displayName = `${sector} ETF`;
+
+    etfsById.set(id, {
+      id,
+      name: displayName,
+      displayName,
+      symbol: `${sector.slice(0, 3).toUpperCase()}-ETF`,
+      type: 'etf',
+      market: 'Global',
+      sector,
+      buildingVisualType: 'ETF',
+      basePrice: 90 + (hashStringToInt(sector) % 90),
+      currentPrice: 90,
+      yearlyDrift: 0.04,
+      volatilityLabel,
+      volatility,
+      peRatio: 0,
+      description: 'A stable ETF that smooths risk across its sector.',
+      unlocked: true,
+      sharesOwned: 0,
+      totalCostBasis: 0,
+      priceHistory: [{ year: 2026, price: 90 }],
+      categoryTags: ['etf', 'diversification', 'market'],
+    });
+  }
+
+  // Country ETFs (from road country groups / underlying stocks in that market).
+  const countryEtfsById = new Map<string, Asset>();
+  const stocksByMarket = new Map<Market, Asset[]>();
+  for (const s of stocksById.values()) {
+    if (!stocksByMarket.has(s.market)) stocksByMarket.set(s.market, []);
+    stocksByMarket.get(s.market)!.push(s);
+  }
+
+  const marketSymbolShort: Record<Market, string> = {
+    Switzerland: 'SMI',
+    USA: 'USA',
+    'Emerging Markets': 'EM',
+    Global: 'GLB',
+  };
+
+  for (const [market, underlying] of stocksByMarket.entries()) {
+    if (underlying.length === 0) continue;
+    const avgVol = underlying.reduce((a, s) => a + s.volatility, 0) / underlying.length;
+    const volatilityLabel: VolatilityLabel = 'stable';
+    const volatility = Math.max(0.01, avgVol * 0.25);
+
+    const id = `etf-country-${market}`;
+    const displayName = `${market} ETF`;
+
+    countryEtfsById.set(id, {
+      id,
+      name: displayName,
+      displayName,
+      symbol: `${marketSymbolShort[market]}-ETF`,
+      type: 'etf',
+      // Sector is not meaningful for country ETF, but Asset requires it.
+      sector: 'Broad Market',
+      market,
+      buildingVisualType: 'ETF',
+      basePrice: 80 + (hashStringToInt(market) % 80),
+      currentPrice: 80,
+      yearlyDrift: 0.04,
+      volatilityLabel,
+      volatility,
+      peRatio: 0,
+      description: 'A stable country ETF that smooths volatility across companies in that region.',
+      unlocked: true,
+      sharesOwned: 0,
+      totalCostBasis: 0,
+      priceHistory: [{ year: 2026, price: 80 }],
+      categoryTags: ['etf', 'diversification', 'market'],
+    });
+  }
+
+  const out: Record<string, Asset> = {};
+  for (const [id, a] of stocksById.entries()) out[id] = a;
+  for (const [id, a] of etfsById.entries()) out[id] = a;
+  for (const [id, a] of countryEtfsById.entries()) out[id] = a;
+  for (const [id, a] of propertyById.entries()) out[id] = a;
+  return out;
 }
 
 function getCompanyGroupKeyFromMapHouse(h: MapHouse) {
@@ -454,15 +775,16 @@ function CollapseIntoGround({
 function StockModeGrid({ enabled }: { enabled: boolean }) {
   const grid = useMemo(() => {
     // Match the visual scale of the ground plane mesh.
-    const size = 80;
-    const divisions = 16;
+    const size = 92;
+    const divisions = 32;
     const helper = new THREE.GridHelper(size, divisions, 0xffffff, 0xffffff);
     // Subtle overlay; keep it readable but not overpowering.
     const mat = helper.material as THREE.LineBasicMaterial;
     mat.transparent = true;
-    mat.opacity = 0.35;
+    mat.opacity = 0.34;
     mat.depthWrite = false;
-    mat.depthTest = false;
+    // Keep depth testing so the grid layers correctly with the scene.
+    mat.depthTest = true;
     // Avoid tone mapping dimming the lines.
     (mat as unknown as { toneMapped?: boolean }).toneMapped = false;
     helper.position.set(0, 0.01, 0);
@@ -472,6 +794,47 @@ function StockModeGrid({ enabled }: { enabled: boolean }) {
 
   if (!enabled) return null;
   return <primitive object={grid} />;
+}
+
+function CameraDistanceOnStart({
+  started,
+  enforceRadius,
+  controlsRef,
+  farRadius,
+  nearRadius,
+}: {
+  started: boolean;
+  enforceRadius: boolean;
+  controlsRef: React.RefObject<any>;
+  farRadius: number;
+  nearRadius: number;
+}) {
+  const { camera } = useThree();
+
+  useFrame((_state, dt) => {
+    if (!enforceRadius) return;
+    const controls = controlsRef.current;
+    if (!controls) return;
+
+    const target = controls.target as THREE.Vector3 | { x: number; y: number; z: number };
+    const targetVec =
+      target instanceof THREE.Vector3 ? target : new THREE.Vector3(target.x, target.y, target.z);
+
+    const dir = camera.position.clone().sub(targetVec);
+    const currentRadius = dir.length();
+    if (currentRadius < 1e-6) return;
+
+    const desiredRadius = started ? nearRadius : farRadius;
+    const t = 1 - Math.exp(-dt * 4.2); // slightly gentler zoom-in feel
+    const newRadius = currentRadius + (desiredRadius - currentRadius) * t;
+
+    dir.normalize().multiplyScalar(newRadius);
+    camera.position.copy(targetVec).add(dir);
+    // Keep OrbitControls in sync.
+    controls.update?.();
+  });
+
+  return null;
 }
 
 function ModelBatch({
@@ -499,17 +862,418 @@ function City({
   selectedId,
   onToggleBuilding,
   map,
+  interactionsEnabled,
 }: {
   assets: Asset[];
   uiMode: 'city' | 'stocks';
   selectedId: string | null;
   onToggleBuilding: (id: string) => void;
   map: MapJson | null;
+  interactionsEnabled: boolean;
 }) {
-  const assignedCompanies = useMemo(() => {
+  // Sector-driven colormaps (finance/technology/healthcare).
+  // These replace whatever map_Kd was in the original MTL so visuals reflect `house.sector`.
+  const colormapFinance = useLoader(THREE.TextureLoader, '/industrial/Textures/colormap_finance.png');
+  const colormapTechnology = useLoader(THREE.TextureLoader, '/industrial/Textures/colormap_technology.png');
+  const colormapHealthcare = useLoader(THREE.TextureLoader, '/industrial/Textures/colormap_healthcare.png');
+
+  // Normalize texture sampler params to avoid intermittent black/incomplete sampling.
+  for (const t of [colormapFinance, colormapTechnology, colormapHealthcare]) {
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.generateMipmaps = false;
+    t.minFilter = THREE.LinearFilter;
+    t.magFilter = THREE.LinearFilter;
+    t.wrapS = THREE.ClampToEdgeWrapping;
+    t.wrapT = THREE.ClampToEdgeWrapping;
+    t.needsUpdate = true;
+  }
+
+  const colormapForSectorKey = (sectorKey?: string) => {
+    switch (sectorKey) {
+      case 't':
+        return colormapTechnology;
+      case 'f':
+        return colormapFinance;
+      case 'h':
+        return colormapHealthcare;
+      default:
+        return colormapFinance;
+    }
+  };
+
+  const selectedAsset = useMemo(() => {
+    if (!selectedId) return null;
+    return assets.find((a) => a.id === selectedId) ?? null;
+  }, [assets, selectedId]);
+
+  const stockByCompany = useMemo(() => {
+    const m = new Map<string, Asset>();
+    for (const a of assets) {
+      if (a.type === 'stock') m.set(a.id, a);
+    }
+    return m;
+  }, [assets]);
+
+  const propertyByHouseId = useMemo(() => {
+    const m = new Map<string, Asset>();
+    for (const a of assets) {
+      if (a.type !== 'property') continue;
+      // asset.id = property-${house.id}
+      const houseId = a.id.startsWith('property-') ? a.id.slice('property-'.length) : a.id;
+      m.set(houseId, a);
+    }
+    return m;
+  }, [assets]);
+
+  const etfBySectorLabel = useMemo(() => {
+    const m = new Map<Sector, Asset>();
+    for (const a of assets) {
+      if (a.type === 'etf') m.set(a.sector, a);
+    }
+    return m;
+  }, [assets]);
+
+  const countryEtfByMarket = useMemo(() => {
+    const m = new Map<Market, Asset>();
+    for (const a of assets) {
+      if (a.type !== 'etf') continue;
+      if (!a.id.startsWith('etf-country-')) continue;
+      m.set(a.market, a);
+    }
+    return m;
+  }, [assets]);
+
+  const sectorGroups = useMemo(() => {
     if (!map) return null;
-    return createAssignedCompanies(map, assets);
-  }, [map, assets]);
+    const groups = new Map<
+      string,
+      {
+        sectorKey: string;
+        sectorLabel: Sector;
+        cx: number;
+        cy: number;
+        cz: number;
+        count: number;
+      }
+    >();
+
+    for (const h of map.houses) {
+      if (!isBuildingHouse(h)) continue;
+      // Only business buildings participate in ETF/region presentation.
+      if (h.companyName === 'DummyCompany') continue;
+      const sectorKey = h.sector ?? 'DummySector';
+      const sectorLabel = mapSectorKeyToSector(sectorKey);
+      if (!groups.has(sectorKey)) {
+        groups.set(sectorKey, { sectorKey, sectorLabel, cx: 0, cy: 0, cz: 0, count: 0 });
+      }
+      const g = groups.get(sectorKey)!;
+      g.cx += h.position[0];
+      g.cy += h.position[1];
+      g.cz += -h.position[2];
+      g.count += 1;
+    }
+
+    return Array.from(groups.values()).map((g) => ({
+      ...g,
+      cx: g.cx / g.count,
+      cy: g.cy / g.count,
+      cz: g.cz / g.count,
+    }));
+  }, [map]);
+
+  const companyGroups = useMemo(() => {
+    if (!map) return null;
+    const groups = new Map<
+      string,
+      {
+        companyName: string;
+        cx: number;
+        cy: number;
+        cz: number;
+        count: number;
+      }
+    >();
+
+    for (const h of map.houses) {
+      if (!isBuildingHouse(h)) continue;
+      const companyName = h.companyName ?? h.id;
+      if (companyName === 'DummyCompany') continue; // properties don't get bubbles
+      if (!groups.has(companyName)) {
+        groups.set(companyName, { companyName, cx: 0, cy: 0, cz: 0, count: 0 });
+      }
+      const g = groups.get(companyName)!;
+      g.cx += h.position[0];
+      g.cy += h.position[1];
+      g.cz += -h.position[2]; // match Unity -> Three flip used for meshes
+      g.count += 1;
+    }
+
+    return Array.from(groups.values()).map((g) => ({
+      ...g,
+      cx: g.cx / g.count,
+      cy: g.cy / g.count,
+      cz: g.cz / g.count,
+    }));
+  }, [map]);
+
+  const countryGroups = useMemo(() => {
+    if (!map) return null;
+    const groups = new Map<
+      Market,
+      {
+        market: Market;
+        cx: number;
+        cy: number;
+        cz: number;
+        count: number;
+      }
+    >();
+
+    for (const h of map.houses) {
+      const base = normalizeTypeName(h.type);
+      if (!base.startsWith('road-')) continue;
+      const market = mapCountryToMarket(h.country);
+      if (!groups.has(market)) groups.set(market, { market, cx: 0, cy: 0, cz: 0, count: 0 });
+      const g = groups.get(market)!;
+      g.cx += h.position[0];
+      g.cy += h.position[1];
+      g.cz += -h.position[2]; // Unity -> Three flip
+      g.count += 1;
+    }
+
+    return Array.from(groups.values()).map((g) => ({
+      ...g,
+      cx: g.cx / g.count,
+      cy: g.cy / g.count,
+      cz: g.cz / g.count,
+    }));
+  }, [map]);
+
+  const stockBubblePosById = useMemo(() => {
+    const m = new Map<string, [number, number, number]>();
+    if (!companyGroups) return m;
+    for (const g of companyGroups) {
+      const s = stockByCompany.get(g.companyName);
+      if (!s) continue;
+      m.set(s.id, [g.cx, g.cy + 0.95, g.cz]);
+    }
+    return m;
+  }, [companyGroups, stockByCompany]);
+
+  const sectorEtfPosById = useMemo(() => {
+    const m = new Map<string, [number, number, number]>();
+    if (!sectorGroups) return m;
+    for (const g of sectorGroups) {
+      const etfAsset = etfBySectorLabel.get(g.sectorLabel);
+      if (!etfAsset) continue;
+      m.set(etfAsset.id, [g.cx, g.cy + 1.55, g.cz]);
+    }
+    return m;
+  }, [sectorGroups, etfBySectorLabel]);
+
+  const countryEtfPosById = useMemo(() => {
+    const m = new Map<string, [number, number, number]>();
+    if (!countryGroups) return m;
+    for (const g of countryGroups) {
+      const etfAsset = countryEtfByMarket.get(g.market);
+      if (!etfAsset) continue;
+      m.set(etfAsset.id, [g.cx, g.cy + 1.55, g.cz]);
+    }
+    return m;
+  }, [countryGroups, countryEtfByMarket]);
+
+  const stocksBySectorLabel = useMemo(() => {
+    const m = new Map<Sector, Asset[]>();
+    for (const a of assets) {
+      if (a.type !== 'stock') continue;
+      const sector = a.sector;
+      if (!m.has(sector)) m.set(sector, []);
+      m.get(sector)!.push(a);
+    }
+    return m;
+  }, [assets]);
+
+  const stocksByMarket = useMemo(() => {
+    const m = new Map<Market, Asset[]>();
+    for (const a of assets) {
+      if (a.type !== 'stock') continue;
+      const market = a.market;
+      if (!m.has(market)) m.set(market, []);
+      m.get(market)!.push(a);
+    }
+    return m;
+  }, [assets]);
+
+  const sectorLinesByEtfId = useMemo(() => {
+    const m = new Map<string, THREE.BufferGeometry>();
+    if (!sectorGroups) return m;
+
+    for (const g of sectorGroups) {
+      const etfAsset = etfBySectorLabel.get(g.sectorLabel);
+      if (!etfAsset) continue;
+
+      const etfPos = sectorEtfPosById.get(etfAsset.id);
+      if (!etfPos) continue;
+
+      const memberStocks = stocksBySectorLabel.get(g.sectorLabel) ?? [];
+      const positions: number[] = [];
+      for (const s of memberStocks) {
+        const stockPos = stockBubblePosById.get(s.id);
+        if (!stockPos) continue;
+        positions.push(
+          etfPos[0],
+          etfPos[1],
+          etfPos[2],
+          stockPos[0],
+          stockPos[1],
+          stockPos[2],
+        );
+      }
+
+      if (positions.length === 0) continue;
+      const geom = new THREE.BufferGeometry();
+      geom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+      m.set(etfAsset.id, geom);
+    }
+
+    return m;
+  }, [sectorGroups, etfBySectorLabel, sectorEtfPosById, stocksBySectorLabel, stockBubblePosById]);
+
+  const countryLinesByEtfId = useMemo(() => {
+    const m = new Map<string, THREE.BufferGeometry>();
+    if (!countryGroups) return m;
+
+    for (const g of countryGroups) {
+      const etfAsset = countryEtfByMarket.get(g.market);
+      if (!etfAsset) continue;
+
+      const etfPos = countryEtfPosById.get(etfAsset.id);
+      if (!etfPos) continue;
+
+      const memberStocks = stocksByMarket.get(g.market) ?? [];
+      const positions: number[] = [];
+      for (const s of memberStocks) {
+        const stockPos = stockBubblePosById.get(s.id);
+        if (!stockPos) continue;
+        positions.push(
+          etfPos[0],
+          etfPos[1],
+          etfPos[2],
+          stockPos[0],
+          stockPos[1],
+          stockPos[2],
+        );
+      }
+
+      if (positions.length === 0) continue;
+      const geom = new THREE.BufferGeometry();
+      geom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+      m.set(etfAsset.id, geom);
+    }
+
+    return m;
+  }, [countryGroups, countryEtfByMarket, countryEtfPosById, stocksByMarket, stockBubblePosById]);
+
+  const sectorLineMatDim = useMemo(
+    () =>
+      new THREE.LineBasicMaterial({
+        color: 0x7dd3fc, // #7dd3fc
+        transparent: true,
+        opacity: 0.12,
+        depthTest: true,
+        depthWrite: false,
+        toneMapped: false,
+      }),
+    [],
+  );
+
+  const sectorLineMatBright = useMemo(
+    () =>
+      new THREE.LineBasicMaterial({
+        color: 0x7dd3fc,
+        transparent: true,
+        opacity: 0.62,
+        depthTest: true,
+        depthWrite: false,
+        toneMapped: false,
+      }),
+    [],
+  );
+
+  const countryLineMatDim = useMemo(
+    () =>
+      new THREE.LineBasicMaterial({
+        color: 0xffc193, // very light orange
+        transparent: true,
+        opacity: 0.12,
+        depthTest: true,
+        depthWrite: false,
+        toneMapped: false,
+      }),
+    [],
+  );
+
+  const countryLineMatBright = useMemo(
+    () =>
+      new THREE.LineBasicMaterial({
+        color: 0xffc193,
+        transparent: true,
+        opacity: 0.62,
+        depthTest: true,
+        depthWrite: false,
+        toneMapped: false,
+      }),
+    [],
+  );
+
+  const selectedStockSectorLineGeom = useMemo(() => {
+    if (!selectedAsset || selectedAsset.type !== 'stock') return null;
+    const etfId = `etf-${selectedAsset.sector}`;
+    const etfPos = sectorEtfPosById.get(etfId);
+    const stockPos = stockBubblePosById.get(selectedAsset.id);
+    if (!etfPos || !stockPos) return null;
+
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute(
+      'position',
+      new THREE.BufferAttribute(
+        new Float32Array([etfPos[0], etfPos[1], etfPos[2], stockPos[0], stockPos[1], stockPos[2]]),
+        3,
+      ),
+    );
+    return geom;
+  }, [selectedAsset, sectorEtfPosById, stockBubblePosById]);
+
+  const selectedStockCountryLineGeom = useMemo(() => {
+    if (!selectedAsset || selectedAsset.type !== 'stock') return null;
+    const etfId = `etf-country-${selectedAsset.market}`;
+    const etfPos = countryEtfPosById.get(etfId);
+    const stockPos = stockBubblePosById.get(selectedAsset.id);
+    if (!etfPos || !stockPos) return null;
+
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute(
+      'position',
+      new THREE.BufferAttribute(
+        new Float32Array([etfPos[0], etfPos[1], etfPos[2], stockPos[0], stockPos[1], stockPos[2]]),
+        3,
+      ),
+    );
+    return geom;
+  }, [selectedAsset, countryEtfPosById, stockBubblePosById]);
+
+  const selectedSectorEtfFullGeom = useMemo(() => {
+    if (!selectedAsset || selectedAsset.type !== 'etf') return null;
+    if (!selectedAsset.id.startsWith('etf-')) return null;
+    if (selectedAsset.id.startsWith('etf-country-')) return null;
+    return sectorLinesByEtfId.get(selectedAsset.id) ?? null;
+  }, [selectedAsset, sectorLinesByEtfId]);
+
+  const selectedCountryEtfFullGeom = useMemo(() => {
+    if (!selectedAsset || selectedAsset.type !== 'etf') return null;
+    if (!selectedAsset.id.startsWith('etf-country-')) return null;
+    return countryLinesByEtfId.get(selectedAsset.id) ?? null;
+  }, [selectedAsset, countryLinesByEtfId]);
 
   const outlineMat = useMemo(
     () =>
@@ -544,8 +1308,24 @@ function City({
     [],
   );
 
+  const countrySelectedOutlineMat = useMemo(
+    () =>
+      new THREE.MeshBasicMaterial({
+        color: 0xffc193,
+        side: THREE.BackSide,
+        transparent: false,
+        depthWrite: false,
+        depthTest: true,
+        polygonOffset: true,
+        polygonOffsetFactor: 1,
+        polygonOffsetUnits: 1,
+        toneMapped: false,
+      }),
+    [],
+  );
+
   const batches = useMemo(() => {
-    if (!map || !assignedCompanies) return null;
+    if (!map) return null;
     const groups = new Map<
       string,
       {
@@ -575,20 +1355,23 @@ function City({
         quat,
         meta: {
           house: h,
-          asset:
-            normalizeTypeName(h.type).startsWith('building-') && assignedCompanies
-              ? assignedCompanies.get(getCompanyGroupKeyFromMapHouse(h))?.asset ?? null
-              : null,
+          asset: isBuildingHouse(h)
+            ? h.companyName === 'DummyCompany'
+              ? propertyByHouseId.get(h.id) ?? null
+              : stockByCompany.get(h.companyName ?? h.id) ?? null
+            : null,
         },
       });
     }
     return Array.from(groups.values());
-  }, [map, assignedCompanies]);
+  }, [map, stockByCompany]);
 
-  if (!map || !assignedCompanies || !batches) return null;
+  if (!map || !batches) return null;
 
   return (
     <>
+      {/* ETF region hover text removed in building mode */}
+
       {batches.map((b) => (
         <ModelBatch
           key={`${b.spec.resourcePath}${b.spec.obj}`}
@@ -599,7 +1382,46 @@ function City({
             const isRoad = normalizeTypeName(meta.house.type).startsWith('road-');
             const asset = meta.asset;
 
-            if (isRoad || !asset) {
+            if (isRoad) {
+              const countryMarket = mapCountryToMarket(meta.house.country);
+              const countryEtf = countryEtfByMarket.get(countryMarket);
+              const isSelectedCountryEtf =
+                uiMode === 'city' && !!selectedAsset && selectedAsset.type === 'etf' && selectedAsset.market === countryMarket;
+              const outlineRoadObj = isSelectedCountryEtf
+                ? (() => {
+                    const o = base.clone(true);
+                    o.traverse((child) => {
+                      if (!(child instanceof THREE.Mesh)) return;
+                      const geo = child.geometry as unknown as THREE.BufferGeometry;
+                      const edges = getEdgesGeometry(geo);
+                      const line = new THREE.LineSegments(edges, roadOutlineLineMaterial);
+                      line.frustumCulled = false;
+                      line.renderOrder = 20;
+                      child.add(line);
+                      // Hide the filled surface so only the edge lines remain.
+                      child.material = roadInvisibleFillMaterial;
+                    });
+                    return o;
+                  })()
+                : null;
+
+              return (
+                <CollapseIntoGround uiMode={uiMode} position={p.position} quaternion={p.quat}>
+                  <group
+                    onPointerDown={(e) => {
+                      if (!interactionsEnabled) return;
+                      e.stopPropagation();
+                      if (countryEtf) onToggleBuilding(countryEtf.id);
+                    }}
+                  >
+                    <primitive object={base.clone(true)} />
+                    {outlineRoadObj && <primitive object={outlineRoadObj} />}
+                  </group>
+                </CollapseIntoGround>
+              );
+            }
+
+            if (!asset) {
               return (
                 <CollapseIntoGround uiMode={uiMode} position={p.position} quaternion={p.quat}>
                   <primitive object={base.clone(true)} />
@@ -609,32 +1431,187 @@ function City({
 
             return (
               <CollapseIntoGround uiMode={uiMode} position={p.position} quaternion={p.quat}>
+                {(() => {
+                  const selectedCountryMarket =
+                    uiMode === 'city' &&
+                    selectedAsset?.type === 'etf' &&
+                    selectedAsset.id.startsWith('etf-country-')
+                      ? selectedAsset.market
+                      : null;
+
+                  const highlightCountryBuildings =
+                    uiMode === 'city' && !!selectedCountryMarket && asset.type !== 'etf' && asset.market === selectedCountryMarket;
+
+                  return (
                 <SelectableBuilding
                   id={asset.id}
                   base={base}
-                  selected={selectedId === asset.id}
+                  selected={selectedId === asset.id || highlightCountryBuildings}
                   locked={!asset.unlocked}
                   assetType={asset.type}
-                  showInvestableOutline={asset.type === 'stock' && asset.unlocked}
+                  showInvestableOutline={interactionsEnabled && asset.type === 'stock' && asset.unlocked}
                   uiMode={uiMode}
+                  interactionsEnabled={interactionsEnabled}
+                  colormapTexture={meta.house.companyName === 'DummyCompany' ? undefined : colormapForSectorKey(meta.house.sector)}
                   position={[0, 0, 0]}
                   rotY={0}
                   onToggle={onToggleBuilding}
                   outlineMaterial={outlineMat}
-                  selectedOutlineMaterial={selectedOutlineMat}
+                  selectedOutlineMaterial={highlightCountryBuildings ? countrySelectedOutlineMat : selectedOutlineMat}
                 />
+                  );
+                })()}
               </CollapseIntoGround>
             );
           }}
         />
       ))}
 
-      {uiMode === 'stocks' &&
-        Array.from(assignedCompanies.entries()).map(([_, company]) => {
-          const h = company.representative;
-          const asset = company.asset;
+      {/* ETF connectors: show all relationships dim, then highlight the currently-selected relationship */}
+      {interactionsEnabled &&
+        uiMode === 'stocks' &&
+        sectorGroups?.map((g) => {
+          const etfAsset = etfBySectorLabel.get(g.sectorLabel);
+          if (!etfAsset) return null;
+          const geom = sectorLinesByEtfId.get(etfAsset.id);
+          if (!geom) return null;
+
           return (
-            <TickerBubble key={`bubble-${asset.id}`} symbol={asset.symbol} locked={!asset.unlocked} selected={selectedId === asset.id} position={[h.position[0], h.position[1] + 0.95, -h.position[2]]} onSelect={() => onToggleBuilding(asset.id)} />
+            <lineSegments
+              key={`line-sector-${etfAsset.id}`}
+              geometry={geom}
+              material={sectorLineMatDim}
+              raycast={() => null}
+              renderOrder={1}
+            />
+          );
+        })}
+
+      {interactionsEnabled &&
+        uiMode === 'stocks' &&
+        countryGroups?.map((g) => {
+          const etfAsset = countryEtfByMarket.get(g.market);
+          if (!etfAsset) return null;
+          const geom = countryLinesByEtfId.get(etfAsset.id);
+          if (!geom) return null;
+
+          return (
+            <lineSegments
+              key={`line-country-${etfAsset.id}`}
+              geometry={geom}
+              material={countryLineMatDim}
+              raycast={() => null}
+              renderOrder={1}
+            />
+          );
+        })}
+
+      {/* Bright highlight: selecting an ETF lights up its entire fan-out */}
+      {interactionsEnabled && uiMode === 'stocks' && selectedSectorEtfFullGeom && (
+        <lineSegments
+          geometry={selectedSectorEtfFullGeom}
+          material={sectorLineMatBright}
+          raycast={() => null}
+          renderOrder={2}
+        />
+      )}
+      {interactionsEnabled && uiMode === 'stocks' && selectedCountryEtfFullGeom && (
+        <lineSegments
+          geometry={selectedCountryEtfFullGeom}
+          material={countryLineMatBright}
+          raycast={() => null}
+          renderOrder={2}
+        />
+      )}
+
+      {/* Bright highlight: selecting a stock only lights up its own incoming links */}
+      {interactionsEnabled && uiMode === 'stocks' && selectedStockSectorLineGeom && (
+        <lineSegments
+          geometry={selectedStockSectorLineGeom}
+          material={sectorLineMatBright}
+          raycast={() => null}
+          renderOrder={3}
+        />
+      )}
+      {interactionsEnabled && uiMode === 'stocks' && selectedStockCountryLineGeom && (
+        <lineSegments
+          geometry={selectedStockCountryLineGeom}
+          material={countryLineMatBright}
+          raycast={() => null}
+          renderOrder={3}
+        />
+      )}
+
+      {interactionsEnabled &&
+        uiMode === 'stocks' &&
+        companyGroups?.map((g) => {
+          const stockAsset = stockByCompany.get(g.companyName);
+          if (!stockAsset) return null;
+          return (
+            <TickerBubble
+              key={`bubble-${stockAsset.id}`}
+              symbol={stockAsset.symbol}
+              locked={!stockAsset.unlocked}
+              selected={selectedId === stockAsset.id}
+              position={[g.cx, g.cy + 0.95, g.cz]}
+              onSelect={() => onToggleBuilding(stockAsset.id)}
+              interactionsEnabled={interactionsEnabled}
+              size={92}
+              variant="stock"
+            />
+          );
+        })}
+
+      {/* ETF bubbles (one per sector) */}
+      {interactionsEnabled &&
+        uiMode === 'stocks' &&
+        sectorGroups?.map((g) => {
+          const etfAsset = etfBySectorLabel.get(g.sectorLabel);
+          if (!etfAsset) return null;
+          const selectedThisBubble =
+            selectedId === etfAsset.id ||
+            (selectedAsset?.type === 'stock' && selectedAsset.sector === g.sectorLabel);
+
+          return (
+            <TickerBubble
+              key={`etf-bubble-${etfAsset.id}`}
+              symbol={etfAsset.symbol}
+              locked={!etfAsset.unlocked}
+              selected={selectedThisBubble}
+              // lift ETFs above stock bubbles so both are visible
+              position={[g.cx, g.cy + 1.55, g.cz]}
+              onSelect={() => onToggleBuilding(etfAsset.id)}
+              interactionsEnabled={interactionsEnabled}
+              size={86}
+              variant="country-etf"
+            />
+          );
+        })}
+
+      {/* Country ETF bubbles (one per country), centered */}
+      {interactionsEnabled &&
+        uiMode === 'stocks' &&
+        countryGroups?.map((g) => {
+          const etfAsset = countryEtfByMarket.get(g.market);
+          if (!etfAsset) return null;
+
+          const selectedThisBubble =
+            selectedId === etfAsset.id ||
+            ((selectedAsset?.type === 'stock' || selectedAsset?.type === 'property') &&
+              selectedAsset.market === etfAsset.market);
+
+          return (
+            <TickerBubble
+              key={`country-etf-${etfAsset.id}`}
+              symbol={etfAsset.symbol}
+              locked={!etfAsset.unlocked}
+              selected={selectedThisBubble}
+              position={[g.cx, g.cy + 1.55, g.cz]}
+              onSelect={() => onToggleBuilding(etfAsset.id)}
+              interactionsEnabled={interactionsEnabled}
+              size={86}
+              variant="etf"
+            />
           );
         })}
     </>
@@ -642,11 +1619,34 @@ function City({
 }
 
 export default function Home() {
-  const [state, dispatch] = useReducer(gameReducer, undefined, () =>
-    createInitialState({ startingCash: 10_000, seed: 26, year: 2026 }),
+  const [started, setStarted] = useState(false);
+  const [introZooming, setIntroZooming] = useState(false);
+  const [titleVisible, setTitleVisible] = useState(false);
+
+  const [difficulty, setDifficulty] = useState<Difficulty>('mid');
+
+  const startingCash = difficulty === 'min' ? 5_000 : difficulty === 'mid' ? 10_000 : 20_000;
+
+  const [state, setState] = useState(() =>
+    createInitialState({ startingCash, seed: 26, year: 2026 }),
   );
 
+  const dispatch = (action: Parameters<typeof gameReducer>[1]) => setState((s) => gameReducer(s, action));
+
   const [map, setMap] = useReducer((_: MapJson | null, next: MapJson | null) => next, null);
+  const dynamicAssets = useMemo(() => {
+    if (!map) return null;
+    return createAssetsFromMap(map);
+  }, [map]);
+
+  const controlsRef = useRef<any>(null);
+  const farRadius = Math.sqrt(9 * 9 + 6 * 6 + 9 * 9); // matches initial camera position below
+  const nearRadius = Math.sqrt(4.5 * 4.5 + 2.5 * 2.5 + 4.5 * 4.5); // slightly tighter orbit after pressing play
+
+  useEffect(() => {
+    if (started) return;
+    setState(createInitialState({ startingCash, seed: 26, year: 2026 }, dynamicAssets ?? undefined));
+  }, [difficulty, started, dynamicAssets]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -673,6 +1673,24 @@ export default function Home() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!started) {
+      setTitleVisible(false);
+      setIntroZooming(false);
+      return;
+    }
+    setIntroZooming(true);
+    const t = window.setTimeout(() => setIntroZooming(false), 1100);
+    return () => window.clearTimeout(t);
+  }, [started]);
+
+  useEffect(() => {
+    if (!started) return;
+    setTitleVisible(true);
+    const t = window.setTimeout(() => setTitleVisible(false), 2200);
+    return () => window.clearTimeout(t);
+  }, [started]);
 
   const selectedAsset = state.selectedAssetId ? state.assets[state.selectedAssetId] : null;
   const panelOpen = selectedAsset !== null;
@@ -702,27 +1720,32 @@ export default function Home() {
   // Debug: show which 3D model file the selected company/building comes from.
   const debugSelectedBuildingFiles = useMemo(() => {
     if (!map || !state.selectedAssetId) return null;
-    const assigned = createAssignedCompanies(map, allAssets);
-    const company = Array.from(assigned.values()).find((c) => c.asset.id === state.selectedAssetId);
-    if (!company) return null;
 
-    const objPaths = company.members
-      .map((m) => specForMapType(m.type)?.obj)
-      .filter((v): v is string => typeof v === 'string');
+    const selected = state.assets[state.selectedAssetId];
+    if (!selected) return null;
+
+    const relevantHouses =
+      selected.type === 'stock'
+        ? map.houses.filter((h) => isBuildingHouse(h) && (h.companyName ?? h.id) === selected.id)
+        : map.houses.filter((h) => isBuildingHouse(h) && mapSectorKeyToSector(h.sector) === selected.sector);
+
+    const objPaths = relevantHouses.map((m) => specForMapType(m.type)?.obj).filter((v): v is string => typeof v === 'string');
     if (objPaths.length === 0) return null;
 
     const filenames = Array.from(
       new Set(objPaths.map((p) => p.split('/').pop() ?? p)),
     );
     return filenames.join(', ');
-  }, [map, allAssets, state.selectedAssetId]);
+  }, [map, state.assets, state.selectedAssetId]);
 
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
       <Canvas
         shadows
-        camera={{ position: [3, 2, 3], fov: 60 }}
+        frameloop="always"
+        camera={{ position: [9, 6, 9], fov: 60 }}
         onPointerMissed={() => {
+          if (!started) return;
           dispatch({ type: 'SELECT_ASSET', assetId: null });
         }}
       >
@@ -748,6 +1771,7 @@ export default function Home() {
               dispatch({ type: 'SELECT_ASSET', assetId: state.selectedAssetId === id ? null : id })
             }
             map={map}
+            interactionsEnabled={started}
           />
         </Suspense>
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
@@ -755,48 +1779,233 @@ export default function Home() {
           <shadowMaterial transparent opacity={0.25} />
         </mesh>
         <StockModeGrid enabled={state.uiMode === 'stocks'} />
-        <OrbitControls />
+        <OrbitControls ref={controlsRef} autoRotate={!started} autoRotateSpeed={1.1} target={[0, 0, 0]} />
+        <CameraDistanceOnStart
+          started={started}
+          enforceRadius={!started || introZooming}
+          controlsRef={controlsRef}
+          farRadius={farRadius}
+          nearRadius={nearRadius}
+        />
       </Canvas>
 
-      <Hud
-        state={state}
-        onNextYear={() => dispatch({ type: 'ADVANCE_YEAR' })}
-        onToggleMode={() => dispatch({ type: 'TOGGLE_UI_MODE' })}
-        onSelectAsset={(assetId) =>
-          dispatch({
-            type: 'SELECT_ASSET',
-            assetId: state.selectedAssetId === assetId ? null : assetId,
-          })
-        }
-        onSellAll={(assetId, qty) => dispatch({ type: 'SELL', assetId, qty })}
-        debugSelectedBuildingFileName={debugSelectedBuildingFiles ?? undefined}
-      >
-        {panelOpen && selectedAsset && (
-          <AssetPanel
-            asset={selectedAsset}
-            cash={state.player.cash}
-            onBuy={(qty) => dispatch({ type: 'BUY', assetId: selectedAsset.id, qty })}
-            onSell={(qty) => dispatch({ type: 'SELL', assetId: selectedAsset.id, qty })}
-          />
-        )}
-      </Hud>
+      {/* Game UI (rendered only after pressing play) */}
+      {started && (
+        <>
+          <Hud
+            state={state}
+            onNextYear={() => dispatch({ type: 'ADVANCE_YEAR' })}
+            onToggleMode={() => dispatch({ type: 'TOGGLE_UI_MODE' })}
+            onSelectAsset={(assetId) =>
+              dispatch({
+                type: 'SELECT_ASSET',
+                assetId: state.selectedAssetId === assetId ? null : assetId,
+              })
+            }
+            onSellAll={(assetId, qty) => dispatch({ type: 'SELL', assetId, qty })}
+            debugSelectedBuildingFileName={debugSelectedBuildingFiles ?? undefined}
+          >
+            {panelOpen && selectedAsset && (
+              <AssetPanel
+                asset={selectedAsset}
+                cash={state.player.cash}
+                onBuy={(qty) => dispatch({ type: 'BUY', assetId: selectedAsset.id, qty })}
+                onSell={(qty) => dispatch({ type: 'SELL', assetId: selectedAsset.id, qty })}
+                relatedSectorEtf={
+                  (selectedAsset.type === 'stock' || selectedAsset.type === 'property') &&
+                  state.assets[`etf-${selectedAsset.sector}`]
+                    ? ({
+                        id: `etf-${selectedAsset.sector}`,
+                        displayName: `${selectedAsset.sector} ETF`,
+                      } as const)
+                    : null
+                }
+                onSelectRelatedSectorEtf={(etfId) =>
+                  dispatch({
+                    type: 'SELECT_ASSET',
+                    assetId: state.selectedAssetId === etfId ? null : etfId,
+                  })
+                }
+                relatedCountryEtf={
+                  (selectedAsset.type === 'stock' || selectedAsset.type === 'property') &&
+                  state.assets[`etf-country-${selectedAsset.market}`]
+                    ? ({
+                        id: `etf-country-${selectedAsset.market}`,
+                        displayName: `${selectedAsset.market} ETF`,
+                      } as const)
+                    : null
+                }
+                onSelectRelatedCountryEtf={(etfId) =>
+                  dispatch({
+                    type: 'SELECT_ASSET',
+                    assetId: state.selectedAssetId === etfId ? null : etfId,
+                  })
+                }
+              />
+            )}
+          </Hud>
 
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              width: '100%',
+              height: '220px',
+              background: 'rgba(255, 255, 255, 0.08)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+              padding: '16px 24px 0',
+              pointerEvents: 'none',
+            }}
+          >
+            <Line data={chartData} options={chartOptions} />
+          </div>
+        </>
+      )}
+
+      {/* Main menu overlay */}
       <div
         style={{
           position: 'absolute',
-          bottom: 0,
-          left: 0,
-          width: '100%',
-          height: '220px',
-          background: 'rgba(255, 255, 255, 0.08)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          borderTop: '1px solid rgba(255, 255, 255, 0.2)',
-          padding: '16px 24px 0',
-          pointerEvents: 'none',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          pointerEvents: started ? 'none' : 'auto',
+          opacity: started && !titleVisible ? 0 : 1,
+          transition: 'opacity 200ms ease',
+          zIndex: 20,
         }}
       >
-        <Line data={chartData} options={chartOptions} />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+          <button
+            onClick={() => {
+              setTitleVisible(true);
+              setStarted(true);
+            }}
+            disabled={!map}
+            title={map ? 'Start' : 'Loading map...'}
+            style={{
+              width: 90,
+              height: 90,
+              borderRadius: 999,
+              border: '1px solid rgba(255,255,255,0.35)',
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.06))',
+              color: 'rgba(255,255,255,0.95)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              cursor: map ? 'pointer' : 'not-allowed',
+              boxShadow: '0 18px 40px rgba(0,0,0,0.28), inset 0 0 0 1px rgba(255,255,255,0.10)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 0,
+            }}
+          >
+            {/* modern play icon */}
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M9.2 7.6V16.4C9.2 17.1 10 17.5 10.6 17.1L17.8 12.7C18.4 12.3 18.4 11.4 17.8 11L10.6 6.6C10 6.2 9.2 6.6 9.2 7.6Z"
+                fill="rgba(255,255,255,0.95)"
+              />
+            </svg>
+          </button>
+
+          {/* Title overlay (letter-by-letter on start) */}
+          <div
+            style={{
+              pointerEvents: 'none',
+              opacity: titleVisible ? 1 : 0,
+              transition: 'opacity 220ms ease',
+              userSelect: 'none',
+              fontFamily:
+                'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
+              textShadow: '0 10px 24px rgba(0,0,0,0.35)',
+              lineHeight: 1,
+            }}
+          >
+            {'BuildFolio'.split('').map((ch, i) => (
+              <span
+                key={i}
+                style={{
+                  display: 'inline-block',
+                  opacity: titleVisible ? 1 : 0,
+                  transform: titleVisible ? 'translateY(0px) rotate(0deg)' : 'translateY(10px) rotate(-8deg)',
+                  transition: 'opacity 520ms ease, transform 520ms ease',
+                  transitionDelay: `${i * 60}ms`,
+                  background: 'linear-gradient(90deg, rgba(255,255,255,0.98), rgba(125,211,252,0.95))',
+                  WebkitBackgroundClip: 'text',
+                  backgroundClip: 'text',
+                  color: 'transparent',
+                  fontWeight: 950,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  fontSize: 36,
+                }}
+              >
+                {ch}
+              </span>
+            ))}
+          </div>
+
+          {/* Difficulty + starting cash */}
+          <div
+            style={{
+              padding: '10px 14px',
+              borderRadius: 999,
+              border: '1px solid rgba(255,255,255,0.20)',
+              background: 'rgba(255,255,255,0.07)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              color: 'rgba(255,255,255,0.92)',
+              fontWeight: 800,
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+              display: 'flex',
+              flexDirection: 'row',
+              gap: 10,
+              alignItems: 'center',
+              userSelect: 'none',
+            }}
+          >
+            {(['min', 'mid', 'max'] as const).map((d, idx) => {
+              const cash = d === 'min' ? 5_000 : d === 'mid' ? 10_000 : 20_000;
+              const active = difficulty === d;
+              return (
+                <Fragment key={d}>
+                  <button
+                    onClick={() => setDifficulty(d)}
+                    disabled={started}
+                    style={{
+                      all: 'unset',
+                      cursor: started ? 'default' : 'pointer',
+                      display: 'flex',
+                      flexDirection: 'row',
+                      alignItems: 'baseline',
+                      gap: 8,
+                      padding: '2px 10px',
+                      borderRadius: 999,
+                      background: active ? 'rgba(125,211,252,0.14)' : 'transparent',
+                      border: active ? '1px solid rgba(125,211,252,0.55)' : '1px solid transparent',
+                      opacity: active ? 1 : 0.78,
+                      transition: 'background 160ms ease, border-color 160ms ease, opacity 160ms ease',
+                    }}
+                  >
+                    <span style={{ fontWeight: 900, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                      {d}
+                    </span>
+                    <span style={{ fontSize: 12, fontWeight: 800, opacity: 0.95 }}>
+                      {cash / 1000}k
+                    </span>
+                  </button>
+                  {idx < 2 && <span style={{ opacity: 0.35 }}>|</span>}
+                </Fragment>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );

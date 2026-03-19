@@ -2,13 +2,16 @@ import { createStarterAssets } from './assets';
 import { buy, sell } from './actions';
 import { advanceOneYear } from './simulate';
 import { netWorth } from './portfolio';
-import { GameAction, GameState } from './types';
+import { Asset, GameAction, GameState } from './types';
 
-export function createInitialState(opts?: { startingCash?: number; seed?: number; year?: number }): GameState {
+export function createInitialState(
+  opts?: { startingCash?: number; seed?: number; year?: number },
+  assetsOverride?: Record<string, Asset>,
+): GameState {
   const startingCash = opts?.startingCash ?? 10_000;
   const seed = opts?.seed ?? 26;
   const year = opts?.year ?? 2026;
-  const assets = createStarterAssets();
+  const assets = assetsOverride ?? createStarterAssets();
 
   // Ensure starter history matches year.
   for (const a of Object.values(assets)) {

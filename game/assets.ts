@@ -3,11 +3,14 @@ import { Asset, BuildingVisualType, Market, Sector, VolatilityLabel } from './ty
 function vol(label: VolatilityLabel): { label: VolatilityLabel; v: number } {
   switch (label) {
     case 'low':
-      return { label, v: 0.06 };
+      return { label, v: 0.08 };
     case 'medium':
       return { label, v: 0.12 };
     case 'high':
       return { label, v: 0.22 };
+    case 'stable':
+      // Much calmer than any stock.
+      return { label, v: 0.03 };
   }
 }
 
@@ -203,7 +206,7 @@ export function createStarterAssets(): Record<string, Asset> {
       buildingVisualType: 'ETF',
       basePrice: 100,
       yearlyDrift: 0.05,
-      volatility: 'low',
+      volatility: 'stable',
       peRatio: 18,
       description: 'A basket of Swiss companies. Diversification in one click.',
       unlocked: false,
@@ -220,7 +223,7 @@ export function createStarterAssets(): Record<string, Asset> {
       buildingVisualType: 'ETF',
       basePrice: 120,
       yearlyDrift: 0.06,
-      volatility: 'low',
+      volatility: 'stable',
       peRatio: 19,
       description: 'Global stocks bundled together. Lower single-company risk.',
       unlocked: false,
@@ -237,7 +240,7 @@ export function createStarterAssets(): Record<string, Asset> {
       buildingVisualType: 'ETF',
       basePrice: 110,
       yearlyDrift: 0.07,
-      volatility: 'medium',
+      volatility: 'stable',
       peRatio: 26,
       description: 'Tech exposure without betting on just one company.',
       unlocked: false,
@@ -254,7 +257,7 @@ export function createStarterAssets(): Record<string, Asset> {
       buildingVisualType: 'ETF',
       basePrice: 105,
       yearlyDrift: 0.06,
-      volatility: 'medium',
+      volatility: 'stable',
       peRatio: 20,
       description: 'Healthcare basket: steadier than many single stocks.',
       unlocked: false,
@@ -271,7 +274,7 @@ export function createStarterAssets(): Record<string, Asset> {
       buildingVisualType: 'ETF',
       basePrice: 80,
       yearlyDrift: 0.03,
-      volatility: 'low',
+      volatility: 'stable',
       peRatio: 0,
       description: 'Bonds tend to be calmer. Lower returns, smoother ride.',
       unlocked: false,

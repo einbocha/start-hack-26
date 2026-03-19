@@ -22,11 +22,19 @@ export function AssetPanel({
   onBuy,
   onSell,
   cash,
+  relatedSectorEtf,
+  onSelectRelatedSectorEtf,
+  relatedCountryEtf,
+  onSelectRelatedCountryEtf,
 }: {
   asset: Asset;
   cash: number;
   onBuy: (qty: number) => void;
   onSell: (qty: number) => void;
+  relatedSectorEtf?: { id: string; displayName: string } | null;
+  onSelectRelatedSectorEtf?: (id: string) => void;
+  relatedCountryEtf?: { id: string; displayName: string } | null;
+  onSelectRelatedCountryEtf?: (id: string) => void;
 }) {
   const canBuy1 = cash >= asset.currentPrice && asset.unlocked;
   const canBuy5 = cash >= asset.currentPrice * 5 && asset.unlocked;
@@ -42,6 +50,8 @@ export function AssetPanel({
     sector: 'Sector: companies grouped by industry (tech, healthcare, finance…).',
     market: 'Market: the region where the asset mainly operates.',
   } as const;
+
+  const isProperty = asset.type === 'property';
 
   return (
     <div
@@ -63,12 +73,12 @@ export function AssetPanel({
       </div>
 
       <div style={{ marginTop: 8, fontSize: 12, color: 'rgba(255,255,255,0.72)' }}>
-        {asset.type.toUpperCase()} • {asset.market} • {asset.sector}
+        {asset.type.toUpperCase()} • {asset.market} • {asset.sector} • {asset.symbol}
       </div>
 
       {!asset.unlocked && (
         <div style={{ marginTop: 10, fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>
-          Locked for now. Keep playing—new buildings unlock later.
+          {isProperty ? 'Private property: not buyable.' : 'Locked for now. Keep playing—new buildings unlock later.'}
         </div>
       )}
 
@@ -78,9 +88,6 @@ export function AssetPanel({
 
         <div style={{ color: 'rgba(255,255,255,0.6)' }}>Volatility</div>
         <div style={{ fontWeight: 800 }}>{asset.volatilityLabel}</div>
-
-        <div style={{ color: 'rgba(255,255,255,0.6)' }}>P/E ratio</div>
-        <div style={{ fontWeight: 800 }}>{asset.peRatio === 0 ? '—' : asset.peRatio}</div>
 
         <div style={{ color: 'rgba(255,255,255,0.6)' }}>Shares owned</div>
         <div style={{ fontWeight: 800 }}>{asset.sharesOwned}</div>
@@ -100,7 +107,92 @@ export function AssetPanel({
         <div style={{ marginTop: 6 }}>{explain.market}</div>
       </div>
 
-      <div style={{ marginTop: 14, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+      {isProperty ? (
+        <>
+          <div
+            style={{
+              marginTop: 14,
+              fontSize: 12,
+              color: 'rgba(255,255,255,0.78)',
+              lineHeight: 1.45,
+            }}
+          >
+            <div style={{ fontWeight: 900, marginBottom: 6 }}>Non-business building</div>
+            <div>It doesn’t generate stock value, so there’s nothing to buy or sell.</div>
+          </div>
+
+          <div style={{ marginTop: 14, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            {asset.type !== 'etf' && relatedSectorEtf && onSelectRelatedSectorEtf && (
+              <button
+                onClick={() => onSelectRelatedSectorEtf(relatedSectorEtf.id)}
+                style={{
+                  padding: '10px 10px',
+                  borderRadius: 12,
+                  border: '1px solid rgba(125,211,252,0.32)',
+                  background: 'rgba(125,211,252,0.14)',
+                  color: 'rgba(255,255,255,0.92)',
+                  fontWeight: 900,
+                  cursor: 'pointer',
+                }}
+              >
+                Open {relatedSectorEtf.displayName}
+              </button>
+            )}
+
+            {asset.type !== 'etf' && relatedCountryEtf && onSelectRelatedCountryEtf && (
+              <button
+                onClick={() => onSelectRelatedCountryEtf(relatedCountryEtf.id)}
+                style={{
+                  padding: '10px 10px',
+                  borderRadius: 12,
+                  border: '1px solid rgba(167,139,250,0.32)',
+                  background: 'rgba(167,139,250,0.14)',
+                  color: 'rgba(255,255,255,0.92)',
+                  fontWeight: 900,
+                  cursor: 'pointer',
+                }}
+              >
+                Open {relatedCountryEtf.displayName}
+              </button>
+            )}
+          </div>
+        </>
+      ) : (
+        <div style={{ marginTop: 14, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        {asset.type === 'stock' && relatedSectorEtf && onSelectRelatedSectorEtf && (
+          <button
+            onClick={() => onSelectRelatedSectorEtf(relatedSectorEtf.id)}
+            style={{
+              padding: '10px 10px',
+              borderRadius: 12,
+              border: '1px solid rgba(125,211,252,0.32)',
+              background: 'rgba(125,211,252,0.14)',
+              color: 'rgba(255,255,255,0.92)',
+              fontWeight: 900,
+              cursor: 'pointer',
+            }}
+          >
+            Open {relatedSectorEtf.displayName}
+          </button>
+        )}
+
+        {asset.type === 'stock' && relatedCountryEtf && onSelectRelatedCountryEtf && (
+          <button
+            onClick={() => onSelectRelatedCountryEtf(relatedCountryEtf.id)}
+            style={{
+              padding: '10px 10px',
+              borderRadius: 12,
+              border: '1px solid rgba(167,139,250,0.32)',
+              background: 'rgba(167,139,250,0.14)',
+              color: 'rgba(255,255,255,0.92)',
+              fontWeight: 900,
+              cursor: 'pointer',
+            }}
+          >
+            Open {relatedCountryEtf.displayName}
+          </button>
+        )}
+
         <button
           disabled={!canBuy1}
           onClick={() => onBuy(1)}
@@ -162,7 +254,8 @@ export function AssetPanel({
         >
           Sell 5
         </button>
-      </div>
+        </div>
+      )}
     </div>
   );
 }
