@@ -686,6 +686,7 @@ export default function Home() {
         state={state}
         onNextYear={() => dispatch({ type: 'ADVANCE_YEAR' })}
         onToggleMode={() => dispatch({ type: 'TOGGLE_UI_MODE' })}
+        onSellAll={(assetId, qty) => dispatch({ type: 'SELL', assetId, qty })}
       />
 
       {panelOpen && selectedAsset && (

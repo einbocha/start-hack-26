@@ -8,10 +8,12 @@ export function Hud({
   state,
   onNextYear,
   onToggleMode,
+  onSellAll,
 }: {
   state: GameState;
   onNextYear: () => void;
   onToggleMode: () => void;
+  onSellAll: (assetId: string, qty: number) => void;
 }) {
   const [stocksOpen, setStocksOpen] = useState(false);
 
@@ -47,15 +49,12 @@ export function Hud({
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline' }}>
           <div style={{ fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', fontSize: 12 }}>
-            City Portfolio
+            {state.uiMode === 'city' ? 'City Portfolio' : 'Stock Portfolio'}
           </div>
           <div style={{ fontWeight: 700, fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>Year {state.year}</div>
         </div>
 
         <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr auto', gap: 8, fontSize: 13 }}>
-          <div style={{ color: 'rgba(255,255,255,0.6)' }}>Year</div>
-          <div style={{ fontWeight: 700 }}>{state.year}</div>
-
           <div style={{ color: 'rgba(255,255,255,0.6)' }}>Cash</div>
           <div style={{ fontWeight: 700 }}>{fmt(state.player.cash)}</div>
 
@@ -133,12 +132,13 @@ export function Hud({
                       key={asset.id}
                       style={{
                         display: 'grid',
-                        gridTemplateColumns: '1fr auto',
+                        gridTemplateColumns: '1fr auto auto',
                         gap: '2px 8px',
                         padding: '5px 6px',
                         borderRadius: 6,
                         background: 'rgba(255,255,255,0.05)',
                         fontSize: 12,
+                        alignItems: 'center',
                       }}
                     >
                       <div style={{ fontWeight: 700, color: 'rgba(255,255,255,0.9)' }}>
@@ -147,6 +147,24 @@ export function Hud({
                       <div style={{ fontWeight: 700, color: ratioColor, textAlign: 'right' }}>
                         {ratio >= 0 ? '+' : ''}{fmtPct(ratio)}
                       </div>
+                      <button
+                        onClick={() => onSellAll(asset.id, asset.sharesOwned)}
+                        style={{
+                          gridRow: '1 / span 2',
+                          gridColumn: 3,
+                          padding: '3px 7px',
+                          borderRadius: 5,
+                          border: '1px solid rgba(255,100,100,0.5)',
+                          background: 'rgba(255,80,80,0.15)',
+                          color: 'rgba(255,160,160,0.95)',
+                          fontSize: 11,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        Sell all
+                      </button>
                       <div style={{ color: 'rgba(255,255,255,0.5)' }}>
                         {asset.sharesOwned} share{asset.sharesOwned !== 1 ? 's' : ''}
                       </div>

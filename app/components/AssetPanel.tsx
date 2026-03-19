@@ -49,9 +49,8 @@ export function AssetPanel({
     <div
       style={{
         position: 'absolute',
-        left: '16px',
-        top: '50%',
-        transform: 'translateY(-50%)',
+        right: '72px',
+        top: '16px',
         width: 320,
         background: 'rgba(255, 255, 255, 0.08)',
         backdropFilter: 'blur(12px)',
