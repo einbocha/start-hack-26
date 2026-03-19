@@ -1,7 +1,8 @@
 'use client';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, useFBX } from '@react-three/drei';
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
+import * as THREE from 'three';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -58,6 +59,19 @@ const chartOptions = {
 
 function Building() {
   const fbx = useFBX('/building-a.fbx');
+
+  useEffect(() => {
+    fbx.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        const oldMat = child.material as THREE.MeshBasicMaterial | THREE.MeshStandardMaterial;
+        child.material = new THREE.MeshStandardMaterial({
+          color: oldMat.color ?? new THREE.Color(0xcccccc),
+          map: oldMat.map ?? null,
+        });
+      }
+    });
+  }, [fbx]);
+
   return <primitive object={fbx} scale={0.01} />;
 }
 
@@ -66,8 +80,8 @@ export default function Home() {
     <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
       <Canvas camera={{ position: [3, 2, 3], fov: 60 }}>
         <color attach="background" args={['#1a2535']} />
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[2, 2, 5]} />
+        <ambientLight intensity={1} />
+        <directionalLight position={[2, 2, 5]} intensity={2} />
         <Suspense fallback={null}>
           <Building />
         </Suspense>
