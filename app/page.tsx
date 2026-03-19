@@ -25,9 +25,20 @@ import { visualFor, roadVisuals } from '../game/visuals';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
 
 const PUBLIC_BASE_PATH = (process.env.NEXT_PUBLIC_BASE_PATH ?? '').replace(/\/+$/, '');
+const runtimeBasePath = () => {
+  if (PUBLIC_BASE_PATH) return PUBLIC_BASE_PATH;
+  if (typeof window === 'undefined') return '';
+  // GitHub Pages project sites live under "/<repo>/".
+  if (window.location.hostname.endsWith('github.io')) {
+    const first = window.location.pathname.split('/').filter(Boolean)[0];
+    if (first) return `/${first}`;
+  }
+  return '';
+};
 const publicUrl = (path: string) => {
-  // If base path is configured (e.g. GitHub Pages project site), use it.
-  if (PUBLIC_BASE_PATH) return `${PUBLIC_BASE_PATH}${path}`;
+  // If base path is configured or inferred (e.g. GitHub Pages project site), use it.
+  const base = runtimeBasePath();
+  if (base) return `${base}${path}`;
   // Fallback to relative paths so assets still resolve under nested hosts.
   return path.replace(/^\/+/, '');
 };
