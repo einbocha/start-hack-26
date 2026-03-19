@@ -24,8 +24,13 @@ import { visualFor, roadVisuals } from '../game/visuals';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
 
-const PUBLIC_BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
-const publicUrl = (path: string) => `${PUBLIC_BASE_PATH}${path}`;
+const PUBLIC_BASE_PATH = (process.env.NEXT_PUBLIC_BASE_PATH ?? '').replace(/\/+$/, '');
+const publicUrl = (path: string) => {
+  // If base path is configured (e.g. GitHub Pages project site), use it.
+  if (PUBLIC_BASE_PATH) return `${PUBLIC_BASE_PATH}${path}`;
+  // Fallback to relative paths so assets still resolve under nested hosts.
+  return path.replace(/^\/+/, '');
+};
 
 // Cached edge geometries so selecting roads/countries doesn't repeatedly rebuild outlines.
 const edgesGeometryCache = new WeakMap<THREE.BufferGeometry, THREE.EdgesGeometry>();
