@@ -19,6 +19,8 @@ export function Hud({
   const hint = diversificationHint(state.assets);
 
   const fmt = (n: number) => n.toLocaleString('en-US', { maximumFractionDigits: 2 });
+  const fmtPct = (n: number) =>
+    `${(n * 100).toLocaleString('en-US', { maximumFractionDigits: 2 })}%`;
 
   return (
     <>
@@ -72,33 +74,60 @@ export function Hud({
         )}
       </div>
 
-      <button
-        onClick={onNextYear}
+      <div
         style={{
           position: 'absolute',
           top: '16px',
           right: '16px',
-          padding: '12px 14px',
-          borderRadius: 14,
-          border: '1px solid rgba(255,255,255,0.2)',
-          background: 'rgba(255,255,255,0.12)',
-          color: 'rgba(255,255,255,0.95)',
-          fontWeight: 800,
-          letterSpacing: '0.06em',
-          textTransform: 'uppercase',
-          cursor: 'pointer',
-          pointerEvents: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+          alignItems: 'flex-end',
+          pointerEvents: 'none',
         }}
       >
-        Advance 1 Year
-      </button>
+        <div
+          style={{
+            padding: '6px 10px',
+            borderRadius: 999,
+            background: 'rgba(15,23,42,0.78)',
+            border: '1px solid rgba(148,163,184,0.7)',
+            color: 'rgba(241,245,249,0.95)',
+            fontSize: 12,
+            fontWeight: 600,
+            letterSpacing: '0.05em',
+            textTransform: 'uppercase',
+            pointerEvents: 'auto',
+          }}
+        >
+          Inflation&nbsp;{fmtPct(state.inflationRate)}
+        </div>
+
+        <button
+          onClick={onNextYear}
+          style={{
+            padding: '12px 14px',
+            borderRadius: 14,
+            border: '1px solid rgba(255,255,255,0.2)',
+            background: 'rgba(255,255,255,0.12)',
+            color: 'rgba(255,255,255,0.95)',
+            fontWeight: 800,
+            letterSpacing: '0.06em',
+            textTransform: 'uppercase',
+            cursor: 'pointer',
+            pointerEvents: 'auto',
+          }}
+        >
+          Advance 1 Year
+        </button>
+      </div>
 
       <button
         onClick={onToggleMode}
         title="Toggle City / Stocks (Space)"
         style={{
           position: 'absolute',
-          top: '64px',
+          top: '108px',
           right: '16px',
           width: 44,
           height: 44,

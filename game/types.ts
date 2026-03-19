@@ -77,6 +77,13 @@ export type GameState = {
   lastEvent: YearEvent | null;
   lastActionMessage: string | null;
   netWorthHistory: PricePoint[];
+  // Inflation model
+  // inflationRate: year-over-year CPI change applied at the *end* of this year (e.g. 0.02 = 2%)
+  inflationRate: number;
+  // inflationIndex: cumulative price level vs. starting year (starts at 1, then multiplies by (1+rate) each year)
+  inflationIndex: number;
+  // per-year history for education / future UI
+  inflationHistory: { year: number; rate: number; index: number }[];
   uiMode: 'city' | 'stocks';
 };
 

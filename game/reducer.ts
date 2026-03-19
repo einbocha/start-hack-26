@@ -25,10 +25,14 @@ export function createInitialState(opts?: { startingCash?: number; seed?: number
     lastEvent: null,
     lastActionMessage: null,
     netWorthHistory: [],
+    inflationRate: 0, // starting year reference
+    inflationIndex: 1,
+    inflationHistory: [{ year, rate: 0, index: 1 }],
     uiMode: 'city',
   };
   return {
     ...baseState,
+    // Base year net worth is real == nominal because index = 1
     netWorthHistory: [{ year, price: netWorth(baseState) }],
   };
 }
