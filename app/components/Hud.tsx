@@ -4,16 +4,95 @@ import { ReactNode, useState } from 'react';
 import { diversificationHint, holdingValue, investedValue, netWorth, totalPnL } from '../../game/portfolio';
 import { GameState } from '../../game/types';
 
+type EventImpact = 'up' | 'down' | 'neutral';
+type EventBubble = {
+  id: string;
+  tag: string;
+  title: string;
+  detail: string;
+  impact: EventImpact;
+};
+
+function eventBubblePalette(impact: EventImpact) {
+  switch (impact) {
+    case 'up':
+      return {
+        dot: 'rgba(120,255,180,0.95)',
+        bg: 'rgba(120,255,180,0.10)',
+        border: 'rgba(120,255,180,0.52)',
+        text: 'rgba(240,255,248,0.95)',
+        subtext: 'rgba(214,255,232,0.75)',
+      };
+    case 'down':
+      return {
+        dot: 'rgba(255,140,140,0.95)',
+        bg: 'rgba(255,140,140,0.10)',
+        border: 'rgba(255,140,140,0.52)',
+        text: 'rgba(255,245,245,0.95)',
+        subtext: 'rgba(255,210,210,0.75)',
+      };
+    default:
+      return {
+        dot: 'rgba(180,190,255,0.95)',
+        bg: 'rgba(180,190,255,0.10)',
+        border: 'rgba(180,190,255,0.48)',
+        text: 'rgba(246,248,255,0.95)',
+        subtext: 'rgba(220,225,255,0.75)',
+      };
+  }
+}
+
+function EventNotificationBubble({ bubble }: { bubble: EventBubble }) {
+  const p = eventBubblePalette(bubble.impact);
+  return (
+    <div
+      style={{
+        pointerEvents: 'none',
+        padding: '10px 12px',
+        borderRadius: 14,
+        background: p.bg,
+        border: `1px solid ${p.border}`,
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
+        color: p.text,
+        boxShadow: '0 16px 34px rgba(0,0,0,0.22)',
+        maxWidth: 320,
+      }}
+    >
+      <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+        <div style={{ width: 10, height: 10, borderRadius: 999, background: p.dot, marginTop: 4, flex: '0 0 auto' }} />
+        <div style={{ minWidth: 0 }}>
+          <div
+            style={{
+              fontWeight: 800,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              fontSize: 11,
+              color: 'rgba(255,255,255,0.9)',
+            }}
+          >
+            {bubble.tag}
+          </div>
+          <div style={{ marginTop: 2, fontWeight: 900, fontSize: 13, lineHeight: 1.2 }}>{bubble.title}</div>
+          <div style={{ marginTop: 4, fontSize: 12, color: p.subtext, lineHeight: 1.25 }}>{bubble.detail}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function Hud({
   state,
   onNextYear,
   onToggleMode,
+  onSelectAsset,
   onSellAll,
   children,
 }: {
   state: GameState;
   onNextYear: () => void;
   onToggleMode: () => void;
+  onSelectAsset: (assetId: string) => void;
   onSellAll: (assetId: string, qty: number) => void;
   children?: ReactNode;
 }) {
@@ -115,7 +194,7 @@ export function Hud({
                 cursor: 'pointer',
               }}
             >
-              <span>My Stocks</span>
+              <span>{state.uiMode === 'city' ? 'My investements' : 'My Stocks'}</span>
               <span style={{ fontSize: 10 }}>{stocksOpen ? '▲' : '▼'}</span>
             </button>
 
@@ -141,6 +220,7 @@ export function Hud({
                         : 0;
                     const ratioColor =
                       ratio >= 0 ? 'rgba(120,255,180,0.95)' : 'rgba(255,140,140,0.95)';
+                    const isSelected = state.selectedAssetId === asset.id;
                     return (
                       <div
                         key={asset.id}
@@ -150,10 +230,13 @@ export function Hud({
                           gap: '2px 8px',
                           padding: '5px 6px',
                           borderRadius: 6,
-                          background: 'rgba(255,255,255,0.05)',
+                          background: isSelected ? 'rgba(125,211,252,0.14)' : 'rgba(255,255,255,0.05)',
+                          border: isSelected ? '1px solid rgba(125,211,252,0.65)' : '1px solid rgba(255,255,255,0)',
                           fontSize: 12,
                           alignItems: 'center',
+                          cursor: 'pointer',
                         }}
+                        onClick={() => onSelectAsset(asset.id)}
                       >
                         <div style={{ fontWeight: 700, color: 'rgba(255,255,255,0.9)' }}>
                           {asset.symbol}
@@ -162,7 +245,10 @@ export function Hud({
                           {ratio >= 0 ? '+' : ''}{fmtPct(ratio)}
                         </div>
                         <button
-                          onClick={() => onSellAll(asset.id, asset.sharesOwned)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSellAll(asset.id, asset.sharesOwned);
+                          }}
                           style={{
                             gridRow: '1 / span 2',
                             gridColumn: 3,
@@ -211,62 +297,95 @@ export function Hud({
           pointerEvents: 'none',
         }}
       >
-        <div
-          style={{
-            padding: '6px 10px',
-            borderRadius: 999,
-            background: 'rgba(15,23,42,0.78)',
-            border: '1px solid rgba(148,163,184,0.7)',
-            color: 'rgba(241,245,249,0.95)',
-            fontSize: 12,
-            fontWeight: 600,
-            letterSpacing: '0.05em',
-            textTransform: 'uppercase',
-            pointerEvents: 'auto',
-          }}
-        >
-          Inflation&nbsp;{fmtPct(state.inflationRate)}
+        {/* Top row (left-to-right): City/Stock toggle, Advance, Inflation */}
+        <div style={{ display: 'flex', flexDirection: 'row', gap: 8, alignItems: 'center', pointerEvents: 'none' }}>
+          {/* City / Stock toggle */}
+          <button
+            onClick={onToggleMode}
+            title="Toggle City / Stocks (Space)"
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 14,
+              border: '1px solid rgba(255,255,255,0.2)',
+              background: 'rgba(255,255,255,0.10)',
+              color: 'rgba(255,255,255,0.95)',
+              fontWeight: 900,
+              cursor: 'pointer',
+              pointerEvents: 'auto',
+            }}
+          >
+            {state.uiMode === 'city' ? 'City' : 'Stock'}
+          </button>
+
+          <button
+            onClick={onNextYear}
+            style={{
+              height: 44,
+              padding: '12px 14px',
+              borderRadius: 14,
+              border: '1px solid rgba(255,255,255,0.2)',
+              background: 'rgba(255,255,255,0.12)',
+              color: 'rgba(255,255,255,0.95)',
+              fontWeight: 800,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              pointerEvents: 'auto',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            Advance 1 Year
+          </button>
+
+          <div
+            style={{
+              height: 44,
+              padding: '6px 10px',
+              borderRadius: 999,
+              background: 'rgba(15,23,42,0.78)',
+              border: '1px solid rgba(148,163,184,0.7)',
+              color: 'rgba(241,245,249,0.95)',
+              fontSize: 12,
+              fontWeight: 600,
+              letterSpacing: '0.05em',
+              textTransform: 'uppercase',
+              pointerEvents: 'auto',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            Inflation&nbsp;{fmtPct(state.inflationRate)}
+          </div>
         </div>
 
-        <button
-          onClick={onNextYear}
-          style={{
-            padding: '12px 14px',
-            borderRadius: 14,
-            border: '1px solid rgba(255,255,255,0.2)',
-            background: 'rgba(255,255,255,0.12)',
-            color: 'rgba(255,255,255,0.95)',
-            fontWeight: 800,
-            letterSpacing: '0.06em',
-            textTransform: 'uppercase',
-            cursor: 'pointer',
-            pointerEvents: 'auto',
-          }}
-        >
-          Advance 1 Year
-        </button>
+        {/* Test event bubbles (UI only for now) */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end', pointerEvents: 'none' }}>
+          {(
+            [
+              {
+                id: 'demo-earnings',
+                tag: 'Stock Event',
+                title: 'Earnings Beat',
+                detail: 'Stock prices up; trend momentum +3.1%',
+                impact: 'up',
+              },
+              {
+                id: 'demo-macro',
+                tag: 'Market Event',
+                title: 'Rate Volatility',
+                detail: 'Prices jitter; trend uncertainty increases (-1.7% stability)',
+                impact: 'down',
+              },
+            ] satisfies EventBubble[]
+          ).map((bubble) => (
+            <EventNotificationBubble key={bubble.id} bubble={bubble} />
+          ))}
+        </div>
       </div>
-
-      <button
-        onClick={onToggleMode}
-        title="Toggle City / Stocks (Space)"
-        style={{
-          position: 'absolute',
-          top: '108px',
-          right: '16px',
-          width: 44,
-          height: 44,
-          borderRadius: 14,
-          border: '1px solid rgba(255,255,255,0.2)',
-          background: 'rgba(255,255,255,0.10)',
-          color: 'rgba(255,255,255,0.95)',
-          fontWeight: 900,
-          cursor: 'pointer',
-          pointerEvents: 'auto',
-        }}
-      >
-        {state.uiMode === 'city' ? 'City' : 'Stock'}
-      </button>
     </>
   );
 }

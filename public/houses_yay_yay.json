@@ -25,8 +25,8 @@
             "price": 0
         },
         {
-            "id": "comm-building-b (6)",
-            "type": "comm-building-b (6)",
+            "id": "building-b (6)",
+            "type": "building-b (6)",
             "position": [
                 -5.4100022315979,
                 0.0,
@@ -905,8 +905,8 @@
             "price": 0
         },
         {
-            "id": "comm-building-e (3)",
-            "type": "comm-building-e (3)",
+            "id": "building-e (3)",
+            "type": "building-e (3)",
             "position": [
                 7.829997539520264,
                 0.0,
@@ -1059,8 +1059,8 @@
             "price": 0
         },
         {
-            "id": "comm-building-e (12)",
-            "type": "comm-building-e (12)",
+            "id": "building-e (12)",
+            "type": "building-e (12)",
             "position": [
                 3.559998035430908,
                 0.0,
@@ -1235,8 +1235,8 @@
             "price": 0
         },
         {
-            "id": "comm-building-d (1)",
-            "type": "comm-building-d (1)",
+            "id": "building-d (1)",
+            "type": "building-d (1)",
             "position": [
                 2.899998188018799,
                 0.0,
@@ -1301,8 +1301,8 @@
             "price": 0
         },
         {
-            "id": "comm-building-e",
-            "type": "comm-building-e",
+            "id": "building-e",
+            "type": "building-e",
             "position": [
                 2.899998188018799,
                 0.0,
@@ -1785,8 +1785,8 @@
             "price": 0
         },
         {
-            "id": "comm-building-e (2)",
-            "type": "comm-building-e (2)",
+            "id": "building-e (2)",
+            "type": "building-e (2)",
             "position": [
                 2.399998188018799,
                 0.0,
@@ -1829,8 +1829,8 @@
             "price": 0
         },
         {
-            "id": "comm-building-d (2)",
-            "type": "comm-building-d (2)",
+            "id": "building-d (2)",
+            "type": "building-d (2)",
             "position": [
                 7.899997234344482,
                 0.0,
@@ -1873,8 +1873,8 @@
             "price": 0
         },
         {
-            "id": "comm-building-b (5)",
-            "type": "comm-building-b (5)",
+            "id": "building-b (5)",
+            "type": "building-b (5)",
             "position": [
                 2.3299975395202638,
                 0.0,
@@ -2093,8 +2093,8 @@
             "price": 0
         },
         {
-            "id": "comm-building-b (8)",
-            "type": "comm-building-b (8)",
+            "id": "building-b (8)",
+            "type": "building-b (8)",
             "position": [
                 -9.410001754760743,
                 0.0,
@@ -2555,8 +2555,8 @@
             "price": 0
         },
         {
-            "id": "comm-building-e (14)",
-            "type": "comm-building-e (14)",
+            "id": "building-e (14)",
+            "type": "building-e (14)",
             "position": [
                 -9.540000915527344,
                 0.0,
@@ -3567,8 +3567,8 @@
             "price": 0
         },
         {
-            "id": "comm-building-d (3)",
-            "type": "comm-building-d (3)",
+            "id": "building-d (3)",
+            "type": "building-d (3)",
             "position": [
                 4.899997234344482,
                 0.0,
@@ -3765,8 +3765,8 @@
             "price": 0
         },
         {
-            "id": "comm-building-e (15)",
-            "type": "comm-building-e (15)",
+            "id": "building-e (15)",
+            "type": "building-e (15)",
             "position": [
                 -3.550001621246338,
                 0.0,
@@ -3799,6 +3799,28 @@
                 1.0,
                 4.6193608227440566e-7,
                 2.3841855067985308e-7
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "locked": true,
+            "price": 0
+        },
+        {
+            "id": "building-a (5)",
+            "type": "building-a (5)",
+            "position": [
+                3.2064099311828615,
+                -1.4963500499725342,
+                21.511940002441408
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
             ],
             "scale": [
                 1.0,
@@ -3897,8 +3919,8 @@
             "price": 0
         },
         {
-            "id": "comm-building-e (8)",
-            "type": "comm-building-e (8)",
+            "id": "building-e (8)",
+            "type": "building-e (8)",
             "position": [
                 0.7399934530258179,
                 0.0,

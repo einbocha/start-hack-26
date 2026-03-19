@@ -395,6 +395,29 @@ function CollapseIntoGround({
   );
 }
 
+function StockModeGrid({ enabled }: { enabled: boolean }) {
+  const grid = useMemo(() => {
+    // Match the visual scale of the ground plane mesh.
+    const size = 80;
+    const divisions = 16;
+    const helper = new THREE.GridHelper(size, divisions, 0xffffff, 0xffffff);
+    // Subtle overlay; keep it readable but not overpowering.
+    const mat = helper.material as THREE.LineBasicMaterial;
+    mat.transparent = true;
+    mat.opacity = 0.35;
+    mat.depthWrite = false;
+    mat.depthTest = false;
+    // Avoid tone mapping dimming the lines.
+    (mat as unknown as { toneMapped?: boolean }).toneMapped = false;
+    helper.position.set(0, 0.01, 0);
+    helper.renderOrder = 3;
+    return helper;
+  }, []);
+
+  if (!enabled) return null;
+  return <primitive object={grid} />;
+}
+
 function ModelBatch({
   spec,
   placements,
@@ -499,7 +522,8 @@ function City({
     >();
     const flipY = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 
-    for (const h of map.houses) {
+    for (let idx = 0; idx < map.houses.length; idx++) {
+      const h = map.houses[idx];
       const spec = specForMapType(h.type);
       if (!spec) continue;
       // Unity -> Three.js:
@@ -511,7 +535,9 @@ function City({
       const key = `${spec.resourcePath}|${spec.obj}`;
       if (!groups.has(key)) groups.set(key, { spec, list: [] });
       groups.get(key)!.list.push({
-        key: h.id,
+        // `public/map.json` can contain duplicate `id`s for different houses.
+        // Use a composite key so React keeps a stable identity per instance.
+        key: `${h.id}-${idx}`,
         position: [h.position[0], h.position[1], -h.position[2]],
         quat,
         meta: { house: h, asset: assigned.get(h.id) ?? null },
@@ -679,6 +705,7 @@ export default function Home() {
           <planeGeometry args={[80, 80]} />
           <shadowMaterial transparent opacity={0.25} />
         </mesh>
+        <StockModeGrid enabled={state.uiMode === 'stocks'} />
         <OrbitControls />
       </Canvas>
 
@@ -686,6 +713,12 @@ export default function Home() {
         state={state}
         onNextYear={() => dispatch({ type: 'ADVANCE_YEAR' })}
         onToggleMode={() => dispatch({ type: 'TOGGLE_UI_MODE' })}
+        onSelectAsset={(assetId) =>
+          dispatch({
+            type: 'SELECT_ASSET',
+            assetId: state.selectedAssetId === assetId ? null : assetId,
+          })
+        }
         onSellAll={(assetId, qty) => dispatch({ type: 'SELL', assetId, qty })}
       >
         {panelOpen && selectedAsset && (
