@@ -19,14 +19,12 @@ function trendArrow(asset: Asset): { label: string; color: string } | null {
 
 export function AssetPanel({
   asset,
-  onClose,
   onBuy,
   onSell,
   cash,
 }: {
   asset: Asset;
   cash: number;
-  onClose: () => void;
   onBuy: (qty: number) => void;
   onSell: (qty: number) => void;
 }) {
@@ -59,25 +57,6 @@ export function AssetPanel({
         pointerEvents: 'auto',
       }}
     >
-      <button
-        onClick={onClose}
-        style={{
-          position: 'absolute',
-          top: 10,
-          right: 10,
-          background: 'none',
-          border: 'none',
-          color: 'rgba(255,255,255,0.7)',
-          fontSize: '1.1rem',
-          cursor: 'pointer',
-          lineHeight: 1,
-          padding: '2px 6px',
-        }}
-        aria-label="Close"
-      >
-        ×
-      </button>
-
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline' }}>
         <div style={{ fontSize: 16, fontWeight: 900 }}>{asset.displayName}</div>
         {trend && <div style={{ fontWeight: 900, color: trend.color }}>{trend.label}</div>}

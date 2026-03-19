@@ -692,7 +692,6 @@ export default function Home() {
           <AssetPanel
             asset={selectedAsset}
             cash={state.player.cash}
-            onClose={() => dispatch({ type: 'SELECT_ASSET', assetId: null })}
             onBuy={(qty) => dispatch({ type: 'BUY', assetId: selectedAsset.id, qty })}
             onSell={(qty) => dispatch({ type: 'SELL', assetId: selectedAsset.id, qty })}
           />
