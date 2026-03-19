@@ -1,6 +1,7 @@
 'use client';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { OrbitControls, useFBX } from '@react-three/drei';
+import { Suspense } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -55,17 +56,21 @@ const chartOptions = {
   },
 } as const;
 
+function Building() {
+  const fbx = useFBX('/building-a.fbx');
+  return <primitive object={fbx} scale={0.01} />;
+}
+
 export default function Home() {
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
-      <Canvas camera={{ position: [3, 2, 3], fov: 60 }} gl={{ clearColor: '#6b7c3a' }} scene={{ background: null }}>
-        <color attach="background" args={['#6b7c3a']} />
+      <Canvas camera={{ position: [3, 2, 3], fov: 60 }}>
+        <color attach="background" args={['#1a2535']} />
         <ambientLight intensity={0.5} />
         <directionalLight position={[2, 2, 5]} />
-        <mesh>
-          <boxGeometry />
-          <meshStandardMaterial color="orange" />
-        </mesh>
+        <Suspense fallback={null}>
+          <Building />
+        </Suspense>
         <OrbitControls />
       </Canvas>
       <div
