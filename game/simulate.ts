@@ -12,6 +12,8 @@ function volatilityFactor(asset: Asset): number {
   // ETFs are usually calmer than single stocks.
   if (asset.type === 'etf' && asset.sector === 'Bonds') return asset.volatility * 0.35;
   if (asset.type === 'etf') return asset.volatility * 0.65;
+  // High-risk single stocks should swing a lot more year-to-year.
+  if (asset.volatilityLabel === 'high') return asset.volatility * 3.0;
   return asset.volatility;
 }
 
@@ -23,8 +25,15 @@ export function simulateAssetYear(params: {
 }): number {
   const { asset, seed, year, eventMultiplier } = params;
   const rng = rngFrom(seed, year + asset.id.length * 997);
+  // For "high" volatility names, reduce drift so long-run outcome is
+  // relatively neutral (only events provide the mean drift).
+  const drift = asset.volatilityLabel === 'high' ? 0 : asset.yearlyDrift;
   const noise = (rng() * 2 - 1) * volatilityFactor(asset);
-  const growth = asset.yearlyDrift + noise;
+  // Mean reversion toward the starting baseline so prices don't grind
+  // down toward the floor over time (and they recover after big drops).
+  const meanRevertStrength = asset.volatilityLabel === 'high' ? 0.12 : 0.06;
+  const meanRevert = meanRevertStrength * (asset.basePrice / asset.currentPrice - 1);
+  const growth = drift + noise + meanRevert;
   const next = asset.currentPrice * (1 + growth) * eventMultiplier;
   return clampPrice(next);
 }

@@ -114,6 +114,8 @@ type MapHouse = {
   scale: [number, number, number];
   locked: boolean;
   price: number;
+  // Some map exports may include grouping metadata; if missing we fall back to type-based grouping.
+  attributeGroup?: string;
 };
 
 type MapJson = {
@@ -319,6 +321,60 @@ function normalizeTypeName(type: string) {
   return type.replace(/\s*\(\d+\)\s*$/, '');
 }
 
+function getCompanyGroupKeyFromMapHouse(h: MapHouse) {
+  // If the type name includes a trailing numeric attribute in parentheses, treat that as a grouping hint.
+  // Examples:
+  //  - "building-type-f (2)" -> grouped company key "building-type-f"
+  //  - "building-m" -> no attribute group found => treat as separate company instance
+  const normalized = normalizeTypeName(h.type);
+  return normalized !== h.type ? normalized : h.id;
+}
+
+function createAssignedCompanies(map: MapJson, assets: Asset[]) {
+  const buildings = map.houses.filter((h) => normalizeTypeName(h.type).startsWith('building-'));
+  const grouped = new Map<string, MapHouse[]>();
+
+  for (const h of buildings) {
+    const key = getCompanyGroupKeyFromMapHouse(h);
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key)!.push(h);
+  }
+
+  const seed = 26;
+  const rng = (n: number) => {
+    let t = (seed + n * 997 + 0x6D2B79F5) >>> 0;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+
+  const groupKeys = Array.from(grouped.keys());
+  for (let i = groupKeys.length - 1; i > 0; i--) {
+    const j = Math.floor(rng(i) * (i + 1));
+    [groupKeys[i], groupKeys[j]] = [groupKeys[j], groupKeys[i]];
+  }
+
+  const assetList = [...assets];
+  const out = new Map<
+    string,
+    {
+      asset: Asset;
+      members: MapHouse[];
+      representative: MapHouse;
+    }
+  >();
+
+  const count = Math.min(assetList.length, groupKeys.length);
+  for (let i = 0; i < count; i++) {
+    const companyKey = groupKeys[i];
+    const members = grouped.get(companyKey) ?? [];
+    if (members.length === 0) continue;
+    out.set(companyKey, { asset: assetList[i], members, representative: members[0] });
+  }
+
+  return out;
+}
+
 function specForMapType(type: string): { obj: string; mtl: string; resourcePath: string } | null {
   const base = normalizeTypeName(type);
   if (base.startsWith('road-')) {
@@ -450,12 +506,10 @@ function City({
   onToggleBuilding: (id: string) => void;
   map: MapJson | null;
 }) {
-  const buildingSpots = useMemo(() => {
+  const assignedCompanies = useMemo(() => {
     if (!map) return null;
-    const buildings = map.houses.filter((h) => normalizeTypeName(h.type).startsWith('building-'));
-    const roads = map.houses.filter((h) => normalizeTypeName(h.type).startsWith('road-'));
-    return { buildings, roads };
-  }, [map]);
+    return createAssignedCompanies(map, assets);
+  }, [map, assets]);
 
   const outlineMat = useMemo(
     () =>
@@ -490,29 +544,8 @@ function City({
     [],
   );
 
-  const assigned = useMemo(() => {
-    if (!buildingSpots) return null;
-    const seed = 26;
-    const rng = (n: number) => {
-      let t = (seed + n * 997 + 0x6D2B79F5) >>> 0;
-      t = Math.imul(t ^ (t >>> 15), t | 1);
-      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-    const shuffled = [...buildingSpots.buildings];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(rng(i) * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    const assetList = [...assets];
-    const map = new Map<string, Asset>();
-    const count = Math.min(assetList.length, shuffled.length);
-    for (let i = 0; i < count; i++) map.set(shuffled[i].id, assetList[i]);
-    return map;
-  }, [assets, buildingSpots]);
-
   const batches = useMemo(() => {
-    if (!map || !assigned) return null;
+    if (!map || !assignedCompanies) return null;
     const groups = new Map<
       string,
       {
@@ -540,13 +573,19 @@ function City({
         key: `${h.id}-${idx}`,
         position: [h.position[0], h.position[1], -h.position[2]],
         quat,
-        meta: { house: h, asset: assigned.get(h.id) ?? null },
+        meta: {
+          house: h,
+          asset:
+            normalizeTypeName(h.type).startsWith('building-') && assignedCompanies
+              ? assignedCompanies.get(getCompanyGroupKeyFromMapHouse(h))?.asset ?? null
+              : null,
+        },
       });
     }
     return Array.from(groups.values());
-  }, [map, assigned]);
+  }, [map, assignedCompanies]);
 
-  if (!map || !assigned || !batches) return null;
+  if (!map || !assignedCompanies || !batches) return null;
 
   return (
     <>
@@ -591,19 +630,11 @@ function City({
       ))}
 
       {uiMode === 'stocks' &&
-        Array.from(assigned.entries()).map(([houseId, asset]) => {
-          const h = map.houses.find((x) => x.id === houseId);
-          if (!h) return null;
+        Array.from(assignedCompanies.entries()).map(([_, company]) => {
+          const h = company.representative;
+          const asset = company.asset;
           return (
-            <TickerBubble
-              key={`bubble-${houseId}`}
-              symbol={asset.symbol}
-              locked={!asset.unlocked}
-              selected={selectedId === asset.id}
-              // Match Unity -> Three position flip used for meshes: (x, y, z) -> (x, y, -z)
-              position={[h.position[0], h.position[1] + 0.95, -h.position[2]]}
-              onSelect={() => onToggleBuilding(asset.id)}
-            />
+            <TickerBubble key={`bubble-${asset.id}`} symbol={asset.symbol} locked={!asset.unlocked} selected={selectedId === asset.id} position={[h.position[0], h.position[1] + 0.95, -h.position[2]]} onSelect={() => onToggleBuilding(asset.id)} />
           );
         })}
     </>
@@ -668,6 +699,24 @@ export default function Home() {
     };
   }, [selectedAsset, state.netWorthHistory]);
 
+  // Debug: show which 3D model file the selected company/building comes from.
+  const debugSelectedBuildingFiles = useMemo(() => {
+    if (!map || !state.selectedAssetId) return null;
+    const assigned = createAssignedCompanies(map, allAssets);
+    const company = Array.from(assigned.values()).find((c) => c.asset.id === state.selectedAssetId);
+    if (!company) return null;
+
+    const objPaths = company.members
+      .map((m) => specForMapType(m.type)?.obj)
+      .filter((v): v is string => typeof v === 'string');
+    if (objPaths.length === 0) return null;
+
+    const filenames = Array.from(
+      new Set(objPaths.map((p) => p.split('/').pop() ?? p)),
+    );
+    return filenames.join(', ');
+  }, [map, allAssets, state.selectedAssetId]);
+
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
       <Canvas
@@ -720,6 +769,7 @@ export default function Home() {
           })
         }
         onSellAll={(assetId, qty) => dispatch({ type: 'SELL', assetId, qty })}
+        debugSelectedBuildingFileName={debugSelectedBuildingFiles ?? undefined}
       >
         {panelOpen && selectedAsset && (
           <AssetPanel

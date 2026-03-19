@@ -86,6 +86,7 @@ export function Hud({
   onNextYear,
   onToggleMode,
   onSelectAsset,
+  debugSelectedBuildingFileName,
   onSellAll,
   children,
 }: {
@@ -93,6 +94,7 @@ export function Hud({
   onNextYear: () => void;
   onToggleMode: () => void;
   onSelectAsset: (assetId: string) => void;
+  debugSelectedBuildingFileName?: string | null;
   onSellAll: (assetId: string, qty: number) => void;
   children?: ReactNode;
 }) {
@@ -104,7 +106,26 @@ export function Hud({
   const pnlColor = pnl >= 0 ? 'rgba(120,255,180,0.95)' : 'rgba(255,140,140,0.95)';
   const hint = diversificationHint(state.assets);
 
-  const fmt = (n: number) => n.toLocaleString('en-US', { maximumFractionDigits: 2 });
+  // Game-like compact formatting for UI only (keeps underlying calculations accurate).
+  // Example: 5510 -> "5,5k"
+  const fmt = (n: number) => {
+    const abs = Math.abs(n);
+    const sign = n < 0 ? '-' : '';
+
+    const formatCompact = (value: number, suffix: 'k' | 'm' | 'b') => {
+      // Round to 1 decimal place for compact units.
+      const rounded = Math.round(value * 10) / 10;
+      const hasDecimal = Math.abs(rounded - Math.round(rounded)) > 1e-9;
+      const s = rounded.toFixed(hasDecimal ? 1 : 0).replace('.', ',');
+      return `${sign}${s}${suffix}`;
+    };
+
+    if (abs >= 1_000_000_000) return formatCompact(abs / 1_000_000_000, 'b');
+    if (abs >= 1_000_000) return formatCompact(abs / 1_000_000, 'm');
+    if (abs >= 1_000) return formatCompact(abs / 1_000, 'k');
+
+    return n.toLocaleString('en-US', { maximumFractionDigits: 2 });
+  };
   const fmtPct = (n: number) =>
     `${(n * 100).toLocaleString('en-US', { maximumFractionDigits: 2 })}%`;
 
@@ -170,6 +191,12 @@ export function Hud({
           {state.lastActionMessage && (
             <div style={{ marginTop: 10, fontSize: 12, color: 'rgba(255,255,255,0.82)' }}>
               {state.lastActionMessage}
+            </div>
+          )}
+
+          {debugSelectedBuildingFileName && (
+            <div style={{ marginTop: 10, fontSize: 12, color: 'rgba(255,255,255,0.72)' }}>
+              Debug model: {debugSelectedBuildingFileName}
             </div>
           )}
 
