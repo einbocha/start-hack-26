@@ -644,14 +644,24 @@ export default function Home() {
 
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
+      {/* Gradient background */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(160deg, #0f1c2e 0%, #1a2f4a 40%, #1e3a4f 70%, #162438 100%)',
+          zIndex: 0,
+        }}
+      />
       <Canvas
         shadows
         camera={{ position: [3, 2, 3], fov: 60 }}
+        style={{ position: 'relative', zIndex: 1 }}
+        gl={{ alpha: true }}
         onPointerMissed={() => {
           dispatch({ type: 'SELECT_ASSET', assetId: null });
         }}
       >
-        <color attach="background" args={['#1a2535']} />
         <ambientLight intensity={0.32} />
         <hemisphereLight args={['#d8ecff', '#1b2a3a', 0.45]} />
         <directionalLight
