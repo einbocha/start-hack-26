@@ -1,6 +1,7 @@
 'use client';
 
-import { diversificationHint, investedValue, netWorth, totalPnL } from '../../game/portfolio';
+import { useState } from 'react';
+import { diversificationHint, holdingValue, investedValue, netWorth, totalPnL } from '../../game/portfolio';
 import { GameState } from '../../game/types';
 
 export function Hud({
@@ -12,6 +13,8 @@ export function Hud({
   onNextYear: () => void;
   onToggleMode: () => void;
 }) {
+  const [stocksOpen, setStocksOpen] = useState(false);
+
   const invested = investedValue(state.assets);
   const worth = netWorth(state);
   const pnl = totalPnL(state);
@@ -21,6 +24,8 @@ export function Hud({
   const fmt = (n: number) => n.toLocaleString('en-US', { maximumFractionDigits: 2 });
   const fmtPct = (n: number) =>
     `${(n * 100).toLocaleString('en-US', { maximumFractionDigits: 2 })}%`;
+
+  const ownedAssets = Object.values(state.assets).filter((a) => a.sharesOwned > 0);
 
   return (
     <>
@@ -48,6 +53,9 @@ export function Hud({
         </div>
 
         <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr auto', gap: 8, fontSize: 13 }}>
+          <div style={{ color: 'rgba(255,255,255,0.6)' }}>Year</div>
+          <div style={{ fontWeight: 700 }}>{state.year}</div>
+
           <div style={{ color: 'rgba(255,255,255,0.6)' }}>Cash</div>
           <div style={{ fontWeight: 700 }}>{fmt(state.player.cash)}</div>
 
@@ -72,6 +80,86 @@ export function Hud({
             {state.lastActionMessage}
           </div>
         )}
+
+        {/* Stocks dropdown */}
+        <div style={{ marginTop: 12 }}>
+          <button
+            onClick={() => setStocksOpen((v) => !v)}
+            style={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              background: 'rgba(255,255,255,0.07)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              borderRadius: 8,
+              color: 'rgba(255,255,255,0.85)',
+              padding: '6px 10px',
+              fontSize: 12,
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+            }}
+          >
+            <span>My Stocks</span>
+            <span style={{ fontSize: 10 }}>{stocksOpen ? '▲' : '▼'}</span>
+          </button>
+
+          {stocksOpen && (
+            <div
+              style={{
+                marginTop: 6,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+              }}
+            >
+              {ownedAssets.length === 0 ? (
+                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', padding: '4px 2px' }}>
+                  No positions yet.
+                </div>
+              ) : (
+                ownedAssets.map((asset) => {
+                  const value = holdingValue(asset);
+                  const ratio =
+                    asset.totalCostBasis > 0
+                      ? (value - asset.totalCostBasis) / asset.totalCostBasis
+                      : 0;
+                  const ratioColor =
+                    ratio >= 0 ? 'rgba(120,255,180,0.95)' : 'rgba(255,140,140,0.95)';
+                  return (
+                    <div
+                      key={asset.id}
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr auto',
+                        gap: '2px 8px',
+                        padding: '5px 6px',
+                        borderRadius: 6,
+                        background: 'rgba(255,255,255,0.05)',
+                        fontSize: 12,
+                      }}
+                    >
+                      <div style={{ fontWeight: 700, color: 'rgba(255,255,255,0.9)' }}>
+                        {asset.symbol}
+                      </div>
+                      <div style={{ fontWeight: 700, color: ratioColor, textAlign: 'right' }}>
+                        {ratio >= 0 ? '+' : ''}{fmtPct(ratio)}
+                      </div>
+                      <div style={{ color: 'rgba(255,255,255,0.5)' }}>
+                        {asset.sharesOwned} share{asset.sharesOwned !== 1 ? 's' : ''}
+                      </div>
+                      <div style={{ color: 'rgba(255,255,255,0.75)', textAlign: 'right' }}>
+                        {fmt(value)}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       <div
