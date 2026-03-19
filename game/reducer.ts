@@ -2,16 +2,20 @@ import { createStarterAssets } from './assets';
 import { buy, sell } from './actions';
 import { advanceOneYear } from './simulate';
 import { netWorth } from './portfolio';
-import { Asset, GameAction, GameState } from './types';
+import { activeEventsForYear } from './events';
+import { applyProgression } from './progression';
+import { Asset, GameAction, GameState, ScriptedEvent } from './types';
 
 export function createInitialState(
-  opts?: { startingCash?: number; seed?: number; year?: number },
+  opts?: { startingCash?: number; seed?: number; year?: number; eventCatalog?: ScriptedEvent[] },
   assetsOverride?: Record<string, Asset>,
 ): GameState {
   const startingCash = opts?.startingCash ?? 10_000;
   const seed = opts?.seed ?? 26;
   const year = opts?.year ?? 2026;
   const assets = assetsOverride ?? createStarterAssets();
+  const eventCatalog = opts?.eventCatalog ?? [];
+  const activeEvents = activeEventsForYear(eventCatalog, year);
 
   // Ensure starter history matches year.
   for (const a of Object.values(assets)) {
@@ -32,11 +36,15 @@ export function createInitialState(
     inflationIndex: 1,
     inflationHistory: [{ year, rate: 0, index: 1 }],
     uiMode: 'city',
+    eventCatalog,
+    activeEvents,
   };
+  const seededProgression = applyProgression(baseState, { ...assets });
+  const seededState: GameState = { ...baseState, assets: seededProgression.nextAssets };
   return {
-    ...baseState,
+    ...seededState,
     // Base year net worth is real == nominal because index = 1
-    netWorthHistory: [{ year, price: netWorth(baseState) }],
+    netWorthHistory: [{ year, price: netWorth(seededState) }],
   };
 }
 

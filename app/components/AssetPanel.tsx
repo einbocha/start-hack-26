@@ -1,6 +1,7 @@
 'use client';
 
 import { Asset } from '../../game/types';
+import { cityDisplayNameForAsset } from '../lib/cityBuildingAliases';
 
 function fmt(n: number) {
   return n.toLocaleString('en-US', { maximumFractionDigits: 2 });
@@ -26,8 +27,10 @@ export function AssetPanel({
   onSelectRelatedSectorEtf,
   relatedCountryEtf,
   onSelectRelatedCountryEtf,
+  uiMode,
 }: {
   asset: Asset;
+  uiMode: 'city' | 'stocks';
   cash: number;
   onBuy: (qty: number) => void;
   onSell: (qty: number) => void;
@@ -52,6 +55,7 @@ export function AssetPanel({
   } as const;
 
   const isProperty = asset.type === 'property';
+  const panelTitle = uiMode === 'city' ? cityDisplayNameForAsset(asset) : asset.displayName;
 
   return (
     <div
@@ -68,7 +72,7 @@ export function AssetPanel({
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline' }}>
-        <div style={{ fontSize: 16, fontWeight: 900 }}>{asset.displayName}</div>
+        <div style={{ fontSize: 16, fontWeight: 900 }}>{panelTitle}</div>
         {trend && <div style={{ fontWeight: 900, color: trend.color }}>{trend.label}</div>}
       </div>
 

@@ -18,10 +18,14 @@ import { Line } from 'react-chartjs-2';
 import { AssetPanel } from './components/AssetPanel';
 import { Hud } from './components/Hud';
 import { gameReducer, createInitialState } from '../game/reducer';
+import { activeEventsForYear, normalizeEventCatalog } from '../game/events';
 import { Asset, Market, Sector, VolatilityLabel } from '../game/types';
 import { visualFor, roadVisuals } from '../game/visuals';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
+
+const PUBLIC_BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
+const publicUrl = (path: string) => `${PUBLIC_BASE_PATH}${path}`;
 
 // Cached edge geometries so selecting roads/countries doesn't repeatedly rebuild outlines.
 const edgesGeometryCache = new WeakMap<THREE.BufferGeometry, THREE.EdgesGeometry>();
@@ -258,8 +262,8 @@ function SelectableBuilding({
         anyMat.transparent = true;
           // Keep locked buildings visibly "disabled" without crushing the texture tint.
           // (Let the map_Kd drive the actual coloring.)
-        // Enough opacity so map_Kd colormaps remain clearly visible.
-        anyMat.opacity = 0.62;
+        // Keep locked assets visibly faded while still readable.
+        anyMat.opacity = 0.38;
         if (anyMat.map) anyMat.map.needsUpdate = true;
         if (anyMat.needsUpdate !== undefined) anyMat.needsUpdate = true;
       }
@@ -328,7 +332,14 @@ function TickerBubble({
   const fontSize = Math.round(size * 0.17);
 
   return (
-    <Html position={position} center distanceFactor={10} style={{ pointerEvents: locked ? 'none' : 'auto' }}>
+    <Html
+      position={position}
+      center
+      distanceFactor={10}
+      // Keep stock/ETF bubbles below fixed severe-event overlays.
+      zIndexRange={[200, 0]}
+      style={{ pointerEvents: locked ? 'none' : 'auto' }}
+    >
       <div
         onPointerDown={(e) => {
           if (!interactionsEnabled) return;
@@ -396,6 +407,34 @@ function mapSectorKeyToSector(sectorKey?: string): Sector {
       return 'Healthcare';
     default:
       return 'Broad Market';
+  }
+}
+
+function etfMetaForSector(sector: Sector): { displayName: string; symbol: string } {
+  switch (sector) {
+    case 'Technology':
+      return { displayName: 'Invesco QQQ Trust', symbol: 'QQQ' };
+    case 'Finance':
+      return { displayName: 'Financial Select Sector SPDR Fund', symbol: 'XLF' };
+    case 'Healthcare':
+      return { displayName: 'Health Care Select Sector SPDR Fund', symbol: 'XLV' };
+    case 'Bonds':
+      return { displayName: 'iShares Core U.S. Aggregate Bond ETF', symbol: 'AGG' };
+    default:
+      return { displayName: 'Vanguard Total World Stock ETF', symbol: 'VT' };
+  }
+}
+
+function etfMetaForMarket(market: Market): { displayName: string; symbol: string } {
+  switch (market) {
+    case 'USA':
+      return { displayName: 'SPDR S&P 500 ETF Trust', symbol: 'SPY' };
+    case 'Switzerland':
+      return { displayName: 'iShares MSCI Switzerland ETF', symbol: 'EWL' };
+    case 'Emerging Markets':
+      return { displayName: 'iShares MSCI Emerging Markets ETF', symbol: 'EEM' };
+    default:
+      return { displayName: 'iShares MSCI ACWI ETF', symbol: 'ACWI' };
   }
 }
 
@@ -474,6 +513,24 @@ function createAssetsFromMap(map: MapJson): Record<string, Asset> {
     sectorHouses.get(sectorKey)!.push(h);
   }
 
+  // Enforce a per-sector spread: one low, one medium, one high (cycled if >3).
+  const companyVolatilityByName = new Map<string, Exclude<VolatilityLabel, 'stable'>>();
+  const companiesBySector = new Map<Sector, string[]>();
+  for (const [companyName, members] of companyHouses.entries()) {
+    if (companyName === 'DummyCompany') continue;
+    const sector = mapSectorKeyToSector(members[0]?.sector);
+    if (!companiesBySector.has(sector)) companiesBySector.set(sector, []);
+    companiesBySector.get(sector)!.push(companyName);
+  }
+  const volCycle: Array<Exclude<VolatilityLabel, 'stable'>> = ['low', 'medium', 'high'];
+  for (const companies of companiesBySector.values()) {
+    // Stable deterministic order so volatility assignment doesn't jump between runs.
+    companies.sort((a, b) => a.localeCompare(b));
+    for (let i = 0; i < companies.length; i++) {
+      companyVolatilityByName.set(companies[i], volCycle[i % volCycle.length]);
+    }
+  }
+
   // DummyCompany buildings are private, non-tradable property (not stocks).
   const propertyById = new Map<string, Asset>();
   for (const h of houses) {
@@ -511,7 +568,7 @@ function createAssetsFromMap(map: MapJson): Record<string, Asset> {
   for (const [companyName, members] of companyHouses.entries()) {
     if (companyName === 'DummyCompany') continue;
     const any = members[0];
-    const volatilityLabel = volatilityLabelForStock(companyName);
+    const volatilityLabel = companyVolatilityByName.get(companyName) ?? volatilityLabelForStock(companyName);
     const sector = mapSectorKeyToSector(any.sector);
     const market = mapCountryToMarket(any.country);
     const ticker = companyName.toUpperCase();
@@ -559,13 +616,14 @@ function createAssetsFromMap(map: MapJson): Record<string, Asset> {
     const volatility = Math.max(0.01, avgVol * 0.25);
 
     const id = `etf-${sector}`;
-    const displayName = `${sector} ETF`;
+    const etfMeta = etfMetaForSector(sector);
+    const displayName = etfMeta.displayName;
 
     etfsById.set(id, {
       id,
       name: displayName,
       displayName,
-      symbol: `${sector.slice(0, 3).toUpperCase()}-ETF`,
+      symbol: etfMeta.symbol,
       type: 'etf',
       market: 'Global',
       sector,
@@ -593,13 +651,6 @@ function createAssetsFromMap(map: MapJson): Record<string, Asset> {
     stocksByMarket.get(s.market)!.push(s);
   }
 
-  const marketSymbolShort: Record<Market, string> = {
-    Switzerland: 'SMI',
-    USA: 'USA',
-    'Emerging Markets': 'EM',
-    Global: 'GLB',
-  };
-
   for (const [market, underlying] of stocksByMarket.entries()) {
     if (underlying.length === 0) continue;
     const avgVol = underlying.reduce((a, s) => a + s.volatility, 0) / underlying.length;
@@ -607,13 +658,14 @@ function createAssetsFromMap(map: MapJson): Record<string, Asset> {
     const volatility = Math.max(0.01, avgVol * 0.25);
 
     const id = `etf-country-${market}`;
-    const displayName = `${market} ETF`;
+    const etfMeta = etfMetaForMarket(market);
+    const displayName = etfMeta.displayName;
 
     countryEtfsById.set(id, {
       id,
       name: displayName,
       displayName,
-      symbol: `${marketSymbolShort[market]}-ETF`,
+      symbol: etfMeta.symbol,
       type: 'etf',
       // Sector is not meaningful for country ETF, but Asset requires it.
       sector: 'Broad Market',
@@ -699,11 +751,19 @@ function createAssignedCompanies(map: MapJson, assets: Asset[]) {
 function specForMapType(type: string): { obj: string; mtl: string; resourcePath: string } | null {
   const base = normalizeTypeName(type);
   if (base.startsWith('road-')) {
-    return { obj: `/roads/${base}.obj`, mtl: `/roads/${base}.mtl`, resourcePath: '/roads/' };
+    return {
+      obj: publicUrl(`/roads/${base}.obj`),
+      mtl: publicUrl(`/roads/${base}.mtl`),
+      resourcePath: publicUrl('/roads/'),
+    };
   }
   if (base.startsWith('building-type-')) {
     // Suburban pack uses building-type-* naming.
-    return { obj: `/suburban/${base}.obj`, mtl: `/suburban/${base}.mtl`, resourcePath: '/suburban/' };
+    return {
+      obj: publicUrl(`/suburban/${base}.obj`),
+      mtl: publicUrl(`/suburban/${base}.mtl`),
+      resourcePath: publicUrl('/suburban/'),
+    };
   }
 
   // Mapper for commercial vs industrial buildings:
@@ -711,21 +771,29 @@ function specForMapType(type: string): { obj: string; mtl: string; resourcePath:
   //  - Commercial assets on disk are still named building-x.* in /commercial
   if (base.startsWith('comm-building-')) {
     const name = base.replace(/^comm-/, ''); // comm-building-a -> building-a
-    return { obj: `/commercial/${name}.obj`, mtl: `/commercial/${name}.mtl`, resourcePath: '/commercial/' };
+    return {
+      obj: publicUrl(`/commercial/${name}.obj`),
+      mtl: publicUrl(`/commercial/${name}.mtl`),
+      resourcePath: publicUrl('/commercial/'),
+    };
   }
 
    // Certain building families only exist in commercial (e.g. skyscrapers).
    if (base.startsWith('building-skyscraper-')) {
      return {
-       obj: `/commercial/${base}.obj`,
-       mtl: `/commercial/${base}.mtl`,
-       resourcePath: '/commercial/',
+      obj: publicUrl(`/commercial/${base}.obj`),
+      mtl: publicUrl(`/commercial/${base}.mtl`),
+      resourcePath: publicUrl('/commercial/'),
      };
    }
 
   if (base.startsWith('building-') || base.startsWith('detail-') || base.startsWith('chimney-')) {
     // Default: treat as industrial pack naming.
-    return { obj: `/industrial/${base}.obj`, mtl: `/industrial/${base}.mtl`, resourcePath: '/industrial/' };
+    return {
+      obj: publicUrl(`/industrial/${base}.obj`),
+      mtl: publicUrl(`/industrial/${base}.mtl`),
+      resourcePath: publicUrl('/industrial/'),
+    };
   }
   return null;
 }
@@ -873,9 +941,9 @@ function City({
 }) {
   // Sector-driven colormaps (finance/technology/healthcare).
   // These replace whatever map_Kd was in the original MTL so visuals reflect `house.sector`.
-  const colormapFinance = useLoader(THREE.TextureLoader, '/industrial/Textures/colormap_finance.png');
-  const colormapTechnology = useLoader(THREE.TextureLoader, '/industrial/Textures/colormap_technology.png');
-  const colormapHealthcare = useLoader(THREE.TextureLoader, '/industrial/Textures/colormap_healthcare.png');
+  const colormapFinance = useLoader(THREE.TextureLoader, publicUrl('/industrial/Textures/colormap_finance.png'));
+  const colormapTechnology = useLoader(THREE.TextureLoader, publicUrl('/industrial/Textures/colormap_technology.png'));
+  const colormapHealthcare = useLoader(THREE.TextureLoader, publicUrl('/industrial/Textures/colormap_healthcare.png'));
 
   // Normalize texture sampler params to avoid intermittent black/incomplete sampling.
   for (const t of [colormapFinance, colormapTechnology, colormapHealthcare]) {
@@ -1610,7 +1678,7 @@ function City({
               onSelect={() => onToggleBuilding(etfAsset.id)}
               interactionsEnabled={interactionsEnabled}
               size={86}
-              variant="etf"
+              variant="country-etf"
             />
           );
         })}
@@ -1626,9 +1694,10 @@ export default function Home() {
   const [difficulty, setDifficulty] = useState<Difficulty>('mid');
 
   const startingCash = difficulty === 'min' ? 5_000 : difficulty === 'mid' ? 10_000 : 20_000;
+  const [eventCatalog, setEventCatalog] = useState<ReturnType<typeof normalizeEventCatalog>>([]);
 
   const [state, setState] = useState(() =>
-    createInitialState({ startingCash, seed: 26, year: 2026 }),
+    createInitialState({ startingCash, seed: 26, year: 2026, eventCatalog: [] }),
   );
 
   const dispatch = (action: Parameters<typeof gameReducer>[1]) => setState((s) => gameReducer(s, action));
@@ -1645,8 +1714,8 @@ export default function Home() {
 
   useEffect(() => {
     if (started) return;
-    setState(createInitialState({ startingCash, seed: 26, year: 2026 }, dynamicAssets ?? undefined));
-  }, [difficulty, started, dynamicAssets]);
+    setState(createInitialState({ startingCash, seed: 26, year: 2026, eventCatalog }, dynamicAssets ?? undefined));
+  }, [difficulty, started, dynamicAssets, eventCatalog]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -1660,7 +1729,7 @@ export default function Home() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch('/map.json')
+    fetch(publicUrl('/map.json'))
       .then((r) => r.json())
       .then((j: MapJson) => {
         if (cancelled) return;
@@ -1668,6 +1737,22 @@ export default function Home() {
       })
       .catch(() => {
         if (!cancelled) setMap(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(publicUrl('/events.json'))
+      .then((r) => r.json())
+      .then((j: unknown) => {
+        if (cancelled) return;
+        setEventCatalog(normalizeEventCatalog(j));
+      })
+      .catch(() => {
+        if (!cancelled) setEventCatalog([]);
       });
     return () => {
       cancelled = true;
@@ -1691,6 +1776,40 @@ export default function Home() {
     const t = window.setTimeout(() => setTitleVisible(false), 2200);
     return () => window.clearTimeout(t);
   }, [started]);
+
+  useEffect(() => {
+    if (!started) return;
+    setState((s) => {
+      const activeEvents = activeEventsForYear(eventCatalog, s.year);
+      const modeDriver =
+        activeEvents.find((e) => e.seriousness === 'timed' || e.seriousness === 'serious') ??
+        activeEvents.find((e) => e.mode !== 'both') ??
+        null;
+      const uiMode =
+        modeDriver?.mode === 'city'
+          ? 'city'
+          : modeDriver?.mode === 'stock'
+            ? 'stocks'
+            : s.uiMode;
+      return { ...s, eventCatalog, activeEvents, uiMode };
+    });
+  }, [started, eventCatalog]);
+
+  const timedAutoAdvanceKeyRef = useRef<string | null>(null);
+  useEffect(() => {
+    const timedEvent = state.activeEvents.find((e) => e.seriousness === 'timed');
+    if (!timedEvent) {
+      timedAutoAdvanceKeyRef.current = null;
+      return;
+    }
+    const key = `${state.year}:${timedEvent.id}`;
+    if (timedAutoAdvanceKeyRef.current === key) return;
+    timedAutoAdvanceKeyRef.current = key;
+    const t = window.setTimeout(() => {
+      dispatch({ type: 'ADVANCE_YEAR' });
+    }, 20_000);
+    return () => window.clearTimeout(t);
+  }, [state.activeEvents, state.year]);
 
   const selectedAsset = state.selectedAssetId ? state.assets[state.selectedAssetId] : null;
   const panelOpen = selectedAsset !== null;
@@ -1808,6 +1927,7 @@ export default function Home() {
             {panelOpen && selectedAsset && (
               <AssetPanel
                 asset={selectedAsset}
+                uiMode={state.uiMode}
                 cash={state.player.cash}
                 onBuy={(qty) => dispatch({ type: 'BUY', assetId: selectedAsset.id, qty })}
                 onSell={(qty) => dispatch({ type: 'SELL', assetId: selectedAsset.id, qty })}

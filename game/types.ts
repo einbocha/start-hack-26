@@ -68,6 +68,21 @@ export type YearEvent = {
   multiplier: number; // price multiplier applied this year, e.g. 0.9 means -10%
 };
 
+export type EventMode = 'city' | 'stock' | 'both';
+export type EventSeriousness = 'neutral' | 'negative' | 'serious' | 'timed' | 'info';
+
+export type ScriptedEvent = {
+  id: string;
+  text: string;
+  startYear: number;
+  endYear: number;
+  mode: EventMode;
+  seriousness: EventSeriousness;
+  assets: string[];
+  symbols: string[];
+  values: number[];
+};
+
 export type GameState = {
   seed: number;
   year: number;
@@ -85,6 +100,8 @@ export type GameState = {
   // per-year history for education / future UI
   inflationHistory: { year: number; rate: number; index: number }[];
   uiMode: 'city' | 'stocks';
+  eventCatalog: ScriptedEvent[];
+  activeEvents: ScriptedEvent[];
 };
 
 export type GameAction =

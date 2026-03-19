@@ -1,21 +1,15 @@
 'use client';
 
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { diversificationHint, holdingValue, investedValue, netWorth, totalPnL } from '../../game/portfolio';
-import { GameState } from '../../game/types';
+import { GameState, ScriptedEvent } from '../../game/types';
+import { cityDisplayNameForAsset } from '../lib/cityBuildingAliases';
 
-type EventImpact = 'up' | 'down' | 'neutral';
-type EventBubble = {
-  id: string;
-  tag: string;
-  title: string;
-  detail: string;
-  impact: EventImpact;
-};
+type EventVisualKind = 'neutral' | 'negative' | 'info';
 
-function eventBubblePalette(impact: EventImpact) {
-  switch (impact) {
-    case 'up':
+function eventBubblePalette(kind: EventVisualKind) {
+  switch (kind) {
+    case 'neutral':
       return {
         dot: 'rgba(120,255,180,0.95)',
         bg: 'rgba(120,255,180,0.10)',
@@ -23,27 +17,45 @@ function eventBubblePalette(impact: EventImpact) {
         text: 'rgba(240,255,248,0.95)',
         subtext: 'rgba(214,255,232,0.75)',
       };
-    case 'down':
+    case 'negative':
       return {
         dot: 'rgba(255,140,140,0.95)',
-        bg: 'rgba(255,140,140,0.10)',
-        border: 'rgba(255,140,140,0.52)',
+        bg: 'rgba(255,90,90,0.17)',
+        border: 'rgba(255,120,120,0.68)',
         text: 'rgba(255,245,245,0.95)',
         subtext: 'rgba(255,210,210,0.75)',
       };
-    default:
+    case 'info':
       return {
-        dot: 'rgba(180,190,255,0.95)',
-        bg: 'rgba(180,190,255,0.10)',
-        border: 'rgba(180,190,255,0.48)',
+        dot: 'rgba(147,197,253,0.95)',
+        bg: 'rgba(96,165,250,0.14)',
+        border: 'rgba(147,197,253,0.58)',
         text: 'rgba(246,248,255,0.95)',
         subtext: 'rgba(220,225,255,0.75)',
       };
   }
 }
 
-function EventNotificationBubble({ bubble }: { bubble: EventBubble }) {
-  const p = eventBubblePalette(bubble.impact);
+function eventMoves(event: ScriptedEvent) {
+  const n = Math.max(event.values.length, event.symbols.length, event.assets.length);
+  const out: Array<{ label: string; value: number }> = [];
+  for (let i = 0; i < n; i++) {
+    const value = event.values[i] ?? 1;
+    const label = event.symbols[i] ?? event.assets[i] ?? `Item ${i + 1}`;
+    out.push({ label, value });
+  }
+  return out;
+}
+
+function EventNotificationBubble({ event }: { event: ScriptedEvent }) {
+  const kind: EventVisualKind =
+    event.seriousness === 'info'
+      ? 'info'
+      : event.seriousness === 'negative'
+        ? 'negative'
+        : 'neutral';
+  const p = eventBubblePalette(kind);
+  const moves = eventMoves(event).slice(0, 6);
   return (
     <div
       style={{
@@ -71,10 +83,34 @@ function EventNotificationBubble({ bubble }: { bubble: EventBubble }) {
               color: 'rgba(255,255,255,0.9)',
             }}
           >
-            {bubble.tag}
+            {event.seriousness === 'info' ? 'Tutorial Notice' : 'Market Event'}
           </div>
-          <div style={{ marginTop: 2, fontWeight: 900, fontSize: 13, lineHeight: 1.2 }}>{bubble.title}</div>
-          <div style={{ marginTop: 4, fontSize: 12, color: p.subtext, lineHeight: 1.25 }}>{bubble.detail}</div>
+          <div style={{ marginTop: 2, fontWeight: 800, fontSize: 12, color: p.subtext, lineHeight: 1.25 }}>{event.text}</div>
+          <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {moves.map((m, idx) => {
+              const pct = (m.value - 1) * 100;
+              const up = pct > 0;
+              const down = pct < 0;
+              const color = up ? 'rgba(120,255,180,0.95)' : down ? 'rgba(255,140,140,0.95)' : 'rgba(226,232,240,0.9)';
+              const arrow = up ? '▲' : down ? '▼' : '•';
+              return (
+                <span
+                  key={`${event.id}-${idx}-${m.label}`}
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 800,
+                    color,
+                    background: 'rgba(15,23,42,0.42)',
+                    border: '1px solid rgba(148,163,184,0.35)',
+                    borderRadius: 999,
+                    padding: '2px 7px',
+                  }}
+                >
+                  {m.label} {arrow} {Math.abs(pct).toFixed(1)}%
+                </span>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
@@ -105,6 +141,39 @@ export function Hud({
   const pnl = totalPnL(state);
   const pnlColor = pnl >= 0 ? 'rgba(120,255,180,0.95)' : 'rgba(255,140,140,0.95)';
   const hint = diversificationHint(state.assets);
+  const visibleEvents = useMemo(() => state.activeEvents, [state.activeEvents]);
+  const severeEvent = visibleEvents.find((e) => e.seriousness === 'serious' || e.seriousness === 'timed') ?? null;
+  const bubbleEvents = visibleEvents.filter((e) => e.seriousness !== 'serious' && e.seriousness !== 'timed');
+  const topInset = severeEvent ? 56 : 16;
+  const [timedRemainingMs, setTimedRemainingMs] = useState(20_000);
+  const [severeMoving, setSevereMoving] = useState(false);
+  const [severeDocked, setSevereDocked] = useState(false);
+  useEffect(() => {
+    if (!severeEvent || severeEvent.seriousness !== 'timed') return;
+    const start = Date.now();
+    setTimedRemainingMs(20_000);
+    const t = window.setInterval(() => {
+      const elapsed = Date.now() - start;
+      setTimedRemainingMs(Math.max(0, 20_000 - elapsed));
+    }, 250);
+    return () => window.clearInterval(t);
+  }, [severeEvent?.id, severeEvent?.seriousness]);
+  useEffect(() => {
+    if (!severeEvent) {
+      setSevereMoving(false);
+      setSevereDocked(false);
+      return;
+    }
+    setSevereMoving(false);
+    setSevereDocked(false);
+    // 1) hold in center, 2) move to right, 3) dock in stack.
+    const move = window.setTimeout(() => setSevereMoving(true), 1000);
+    const dock = window.setTimeout(() => setSevereDocked(true), 2050);
+    return () => {
+      window.clearTimeout(move);
+      window.clearTimeout(dock);
+    };
+  }, [severeEvent?.id]);
 
   // Game-like compact formatting for UI only (keeps underlying calculations accurate).
   // Example: 5510 -> "5,5k"
@@ -133,11 +202,41 @@ export function Hud({
 
   return (
     <>
+      {severeEvent && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            pointerEvents: 'none',
+            zIndex: 70,
+          }}
+        >
+          <div
+            style={{
+              overflow: 'hidden',
+              borderBottom: '1px solid rgba(248,113,113,0.65)',
+              background: 'rgba(127,29,29,0.87)',
+              color: 'rgba(254,226,226,0.95)',
+              fontWeight: 900,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <div style={{ display: 'inline-block', padding: '8px 0', animation: 'eventTickerScroll 16s linear infinite' }}>
+              {'BREAKING NEWS • ' + severeEvent.text + ' • '.repeat(6)}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Left column — portfolio panel + anything passed as children stack here */}
       <div
         style={{
           position: 'absolute',
-          top: '16px',
+          top: `${topInset}px`,
           left: '16px',
           display: 'flex',
           flexDirection: 'column',
@@ -256,7 +355,7 @@ export function Hud({
                         onClick={() => onSelectAsset(asset.id)}
                       >
                         <div style={{ fontWeight: 700, color: 'rgba(255,255,255,0.9)' }}>
-                          {asset.displayName}
+                          {state.uiMode === 'city' ? cityDisplayNameForAsset(asset) : asset.displayName}
                         </div>
                         <div style={{ fontWeight: 700, color: ratioColor, textAlign: 'right' }}>
                           {ratio >= 0 ? '+' : ''}{fmtPct(ratio)}
@@ -305,7 +404,7 @@ export function Hud({
       <div
         style={{
           position: 'absolute',
-          top: '16px',
+          top: `${topInset}px`,
           right: '16px',
           display: 'flex',
           flexDirection: 'column',
@@ -379,30 +478,140 @@ export function Hud({
           </div>
         </div>
 
-        {/* Test event bubbles (UI only for now) */}
+        {/* Active event bubbles */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end', pointerEvents: 'none' }}>
-          {(
-            [
-              {
-                id: 'demo-earnings',
-                tag: 'Stock Event',
-                title: 'Earnings Beat',
-                detail: 'Stock prices up; trend momentum +3.1%',
-                impact: 'up',
-              },
-              {
-                id: 'demo-macro',
-                tag: 'Market Event',
-                title: 'Rate Volatility',
-                detail: 'Prices jitter; trend uncertainty increases (-1.7% stability)',
-                impact: 'down',
-              },
-            ] satisfies EventBubble[]
-          ).map((bubble) => (
-            <EventNotificationBubble key={bubble.id} bubble={bubble} />
+          {severeEvent && severeDocked && (
+            <div
+              style={{
+                width: 460,
+                padding: '14px 16px',
+                borderRadius: 18,
+                border: '1px solid rgba(248,113,113,0.72)',
+                background: 'rgba(127,29,29,0.76)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                boxShadow: '0 24px 60px rgba(0,0,0,0.45)',
+                color: 'rgba(255,241,242,0.98)',
+                pointerEvents: 'none',
+              }}
+            >
+              <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+                {severeEvent.seriousness === 'timed' ? 'Timed Event' : 'Serious Event'}
+              </div>
+              <div style={{ marginTop: 8, fontSize: 15, fontWeight: 900, lineHeight: 1.25 }}>{severeEvent.text}</div>
+              <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+                {eventMoves(severeEvent).slice(0, 8).map((m, idx) => {
+                  const pct = (m.value - 1) * 100;
+                  const up = pct > 0;
+                  const down = pct < 0;
+                  const color = up ? 'rgba(120,255,180,0.98)' : down ? 'rgba(255,140,140,0.98)' : 'rgba(226,232,240,0.95)';
+                  const arrow = up ? '▲' : down ? '▼' : '•';
+                  return (
+                    <span
+                      key={`${severeEvent.id}-dock-list-${idx}-${m.label}`}
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 900,
+                        color,
+                        border: '1px solid rgba(252,165,165,0.45)',
+                        background: 'rgba(15,23,42,0.35)',
+                        borderRadius: 999,
+                        padding: '3px 8px',
+                      }}
+                    >
+                      {m.label} {arrow} {Math.abs(pct).toFixed(1)}%
+                    </span>
+                  );
+                })}
+              </div>
+              {severeEvent.seriousness === 'timed' && (
+                <div style={{ marginTop: 10, fontSize: 12, fontWeight: 800, color: 'rgba(254,202,202,0.95)' }}>
+                  Auto-advance in {Math.ceil(timedRemainingMs / 1000)}s
+                </div>
+              )}
+            </div>
+          )}
+
+          {bubbleEvents.map((event) => (
+            <EventNotificationBubble key={event.id} event={event} />
           ))}
         </div>
       </div>
+
+      {severeEvent && (
+        <>
+          <style>{`
+            @keyframes eventTickerScroll {
+              0% { transform: translateX(100%); }
+              100% { transform: translateX(-100%); }
+            }
+          `}</style>
+        </>
+      )}
+      {severeEvent && !severeDocked && (
+        <div
+          style={{
+            position: 'fixed',
+            left: severeMoving ? 'calc(100vw - 16px - 460px)' : '50%',
+            top: severeMoving ? `${topInset + 52}px` : '50%',
+            width: severeMoving ? '460px' : 'min(760px, 90vw)',
+            padding: severeMoving ? '14px 16px' : '20px 22px',
+            borderRadius: 18,
+            border: '1px solid rgba(248,113,113,0.72)',
+            background: 'rgba(127,29,29,0.76)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            boxShadow: '0 24px 60px rgba(0,0,0,0.45)',
+            color: 'rgba(255,241,242,0.98)',
+            pointerEvents: 'none',
+            zIndex: 9998,
+            transform: severeMoving ? 'translate(0, 0)' : 'translate(-50%, -50%)',
+            transition:
+              'left 1050ms cubic-bezier(0.22, 1, 0.36, 1), top 1050ms cubic-bezier(0.22, 1, 0.36, 1), width 1050ms cubic-bezier(0.22, 1, 0.36, 1), padding 1050ms cubic-bezier(0.22, 1, 0.36, 1), transform 1050ms cubic-bezier(0.22, 1, 0.36, 1)',
+          }}
+        >
+          <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+            {severeEvent.seriousness === 'timed' ? 'Timed Event' : 'Serious Event'}
+          </div>
+          <div style={{ marginTop: 8, fontSize: severeMoving ? 15 : 20, fontWeight: 900, lineHeight: 1.25, transition: 'font-size 1050ms cubic-bezier(0.22, 1, 0.36, 1)' }}>
+            {severeEvent.text}
+          </div>
+          {severeMoving && (
+            <>
+              <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+                {eventMoves(severeEvent).slice(0, 8).map((m, idx) => {
+                  const pct = (m.value - 1) * 100;
+                  const up = pct > 0;
+                  const down = pct < 0;
+                  const color = up ? 'rgba(120,255,180,0.98)' : down ? 'rgba(255,140,140,0.98)' : 'rgba(226,232,240,0.95)';
+                  const arrow = up ? '▲' : down ? '▼' : '•';
+                  return (
+                    <span
+                      key={`${severeEvent.id}-dock-${idx}-${m.label}`}
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 900,
+                        color,
+                        border: '1px solid rgba(252,165,165,0.45)',
+                        background: 'rgba(15,23,42,0.35)',
+                        borderRadius: 999,
+                        padding: '3px 8px',
+                      }}
+                    >
+                      {m.label} {arrow} {Math.abs(pct).toFixed(1)}%
+                    </span>
+                  );
+                })}
+              </div>
+              {severeEvent.seriousness === 'timed' && (
+                <div style={{ marginTop: 10, fontSize: 12, fontWeight: 800, color: 'rgba(254,202,202,0.95)' }}>
+                  Auto-advance in {Math.ceil(timedRemainingMs / 1000)}s
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
     </>
   );
 }

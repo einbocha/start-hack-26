@@ -1,8 +1,10 @@
-import { eventApplies, pickYearEvent } from './events';
+import { activeEventsForYear, computeEventMultipliers } from './events';
 import { applyProgression } from './progression';
 import { rngFrom } from './rng';
 import { Asset, GameState } from './types';
 import { netWorth } from './portfolio';
+
+const GAME_LENGTH_YEARS = 100;
 
 function clampPrice(p: number): number {
   return Math.max(1, p);
@@ -40,9 +42,38 @@ export function simulateAssetYear(params: {
 }
 
 export function advanceOneYear(state: GameState): GameState {
+  const startYear = state.inflationHistory[0]?.year ?? state.year;
+  const endYear = startYear + (GAME_LENGTH_YEARS - 1);
+  if (state.year >= endYear) {
+    return {
+      ...state,
+      lastActionMessage: `Run complete: you reached year ${endYear} (${GAME_LENGTH_YEARS} years).`,
+    };
+  }
+
   const nextYear = state.year + 1;
   const rng = rngFrom(state.seed, nextYear);
-  const event = pickYearEvent(nextYear, rng, state.assets);
+  const activeEvents = activeEventsForYear(state.eventCatalog, nextYear);
+  const eventMultipliers = computeEventMultipliers(activeEvents, state.assets);
+  const modeDriver =
+    activeEvents.find((e) => e.seriousness === 'timed' || e.seriousness === 'serious') ??
+    activeEvents.find((e) => e.mode !== 'both') ??
+    null;
+  const nextUiMode =
+    modeDriver?.mode === 'city'
+      ? 'city'
+      : modeDriver?.mode === 'stock'
+        ? 'stocks'
+        : state.uiMode;
+  const legacyEvent = activeEvents[0]
+    ? {
+        id: activeEvents[0].id,
+        title: 'Scripted event',
+        description: activeEvents[0].text,
+        appliesTo: { kind: 'asset' as const, assetId: Object.keys(state.assets)[0] ?? '' },
+        multiplier: 1,
+      }
+    : null;
 
   // --- Inflation simulation ---
   // Simple, mean-reverting inflation model:
@@ -64,7 +95,7 @@ export function advanceOneYear(state: GameState): GameState {
       nextAssets[a.id] = a;
       continue;
     }
-    const eventMult = event && eventApplies(event, a) ? event.multiplier : 1;
+    const eventMult = eventMultipliers[a.id] ?? 1;
     const nextPrice = simulateAssetYear({ asset: a, seed: state.seed, year: nextYear, eventMultiplier: eventMult });
     nextAssets[a.id] = {
       ...a,
@@ -73,14 +104,14 @@ export function advanceOneYear(state: GameState): GameState {
     };
   }
 
-  const progression = applyProgression({ ...state, year: nextYear, lastEvent: event }, nextAssets);
+  const progression = applyProgression({ ...state, year: nextYear, lastEvent: legacyEvent }, nextAssets);
 
   const unlockMsg =
     progression.newlyUnlocked.length > 0
       ? `Unlocked: ${progression.newlyUnlocked.map((id) => progression.nextAssets[id].displayName).join(', ')}.`
       : null;
 
-  const eventMsg = event ? `${event.title}: ${event.description}` : null;
+  const eventMsg = activeEvents[0] ? activeEvents[0].text : null;
 
   // Nominal net worth at end of year.
   const nominalNetWorth = netWorth({ ...state, year: nextYear, assets: progression.nextAssets });
@@ -91,7 +122,7 @@ export function advanceOneYear(state: GameState): GameState {
     ...state,
     year: nextYear,
     assets: progression.nextAssets,
-    lastEvent: event,
+    lastEvent: legacyEvent,
     lastActionMessage: [eventMsg, unlockMsg].filter(Boolean).join(' ') || null,
     inflationRate,
     inflationIndex: nextInflationIndex,
@@ -104,6 +135,8 @@ export function advanceOneYear(state: GameState): GameState {
       ...state.netWorthHistory,
       { year: nextYear, price: realNetWorth },
     ],
+    activeEvents,
+    uiMode: nextUiMode,
   };
 }
 
