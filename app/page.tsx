@@ -1,6 +1,59 @@
 'use client';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Tooltip,
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
+
+const chartData = {
+  labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+  datasets: [
+    {
+      data: [42, 58, 45, 70, 65, 88, 75, 92, 80, 105, 98, 120],
+      borderColor: 'rgba(255, 255, 255, 0.85)',
+      borderWidth: 2,
+      pointRadius: 3,
+      pointBackgroundColor: 'rgba(255, 255, 255, 0.9)',
+      fill: true,
+      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+      tension: 0.4,
+    },
+  ],
+};
+
+const chartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: 'rgba(0,0,0,0.4)',
+      titleColor: '#fff',
+      bodyColor: '#fff',
+    },
+  },
+  scales: {
+    x: {
+      grid: { color: 'rgba(255,255,255,0.1)' },
+      ticks: { color: 'rgba(255,255,255,0.7)', font: { size: 11 } },
+      border: { color: 'rgba(255,255,255,0.2)' },
+    },
+    y: {
+      grid: { color: 'rgba(255,255,255,0.1)' },
+      ticks: { color: 'rgba(255,255,255,0.7)', font: { size: 11 } },
+      border: { color: 'rgba(255,255,255,0.2)' },
+    },
+  },
+} as const;
 
 export default function Home() {
   return (
@@ -42,6 +95,23 @@ export default function Home() {
         >
           logos
         </h1>
+      </div>
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          width: '100%',
+          height: '220px',
+          background: 'rgba(255, 255, 255, 0.08)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+          padding: '16px 24px 0',
+          pointerEvents: 'none',
+        }}
+      >
+        <Line data={chartData} options={chartOptions} />
       </div>
     </div>
   );
