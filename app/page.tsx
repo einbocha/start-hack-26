@@ -2062,7 +2062,7 @@ export default function Home() {
               lineHeight: 1,
             }}
           >
-            {'BuildFolio'.split('').map((ch, i) => (
+            {'EquiCity'.split('').map((ch, i) => (
               <span
                 key={i}
                 style={{

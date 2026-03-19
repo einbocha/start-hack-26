@@ -525,8 +525,32 @@ export function Hud({
                 })}
               </div>
               {severeEvent.seriousness === 'timed' && (
-                <div style={{ marginTop: 10, fontSize: 12, fontWeight: 800, color: 'rgba(254,202,202,0.95)' }}>
-                  Auto-advance in {Math.ceil(timedRemainingMs / 1000)}s
+                <div style={{ marginTop: 10 }}>
+                  <div
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 900,
+                      letterSpacing: '0.12em',
+                      textTransform: 'uppercase',
+                      color: 'rgba(254,202,202,0.92)',
+                    }}
+                  >
+                    Incoming auto-advance
+                  </div>
+                  <div
+                    style={{
+                      marginTop: 3,
+                      fontSize: 24,
+                      lineHeight: 1,
+                      fontWeight: 950,
+                      color: 'rgba(252,165,165,0.98)',
+                      textShadow: '0 0 10px rgba(248,113,113,0.45)',
+                      animation: 'countdownPulse 700ms ease-in-out infinite',
+                      transformOrigin: 'left center',
+                    }}
+                  >
+                    {String(Math.ceil(timedRemainingMs / 1000)).padStart(2, '0')}s
+                  </div>
                 </div>
               )}
             </div>
@@ -544,6 +568,11 @@ export function Hud({
             @keyframes eventTickerScroll {
               0% { transform: translateX(100%); }
               100% { transform: translateX(-100%); }
+            }
+            @keyframes countdownPulse {
+              0% { transform: scale(1); opacity: 0.92; }
+              50% { transform: scale(1.07); opacity: 1; }
+              100% { transform: scale(1); opacity: 0.92; }
             }
           `}</style>
         </>
@@ -604,8 +633,32 @@ export function Hud({
                 })}
               </div>
               {severeEvent.seriousness === 'timed' && (
-                <div style={{ marginTop: 10, fontSize: 12, fontWeight: 800, color: 'rgba(254,202,202,0.95)' }}>
-                  Auto-advance in {Math.ceil(timedRemainingMs / 1000)}s
+                <div style={{ marginTop: 10 }}>
+                  <div
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 900,
+                      letterSpacing: '0.12em',
+                      textTransform: 'uppercase',
+                      color: 'rgba(254,202,202,0.92)',
+                    }}
+                  >
+                    Incoming auto-advance
+                  </div>
+                  <div
+                    style={{
+                      marginTop: 3,
+                      fontSize: 24,
+                      lineHeight: 1,
+                      fontWeight: 950,
+                      color: 'rgba(252,165,165,0.98)',
+                      textShadow: '0 0 10px rgba(248,113,113,0.45)',
+                      animation: 'countdownPulse 700ms ease-in-out infinite',
+                      transformOrigin: 'left center',
+                    }}
+                  >
+                    {String(Math.ceil(timedRemainingMs / 1000)).padStart(2, '0')}s
+                  </div>
                 </div>
               )}
             </>
