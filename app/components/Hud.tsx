@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { diversificationHint, holdingValue, investedValue, netWorth, totalPnL } from '../../game/portfolio';
 import { GameState } from '../../game/types';
 
@@ -9,11 +9,13 @@ export function Hud({
   onNextYear,
   onToggleMode,
   onSellAll,
+  children,
 }: {
   state: GameState;
   onNextYear: () => void;
   onToggleMode: () => void;
   onSellAll: (assetId: string, qty: number) => void;
+  children?: ReactNode;
 }) {
   const [stocksOpen, setStocksOpen] = useState(false);
 
@@ -31,155 +33,172 @@ export function Hud({
 
   return (
     <>
+      {/* Left column — portfolio panel + anything passed as children stack here */}
       <div
         style={{
           position: 'absolute',
           top: '16px',
           left: '16px',
-          padding: '14px 16px',
-          borderRadius: 14,
-          background: 'rgba(255,255,255,0.08)',
-          border: '1px solid rgba(255,255,255,0.18)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-          color: 'rgba(255,255,255,0.92)',
-          pointerEvents: 'auto',
-          minWidth: 260,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+          pointerEvents: 'none',
+          maxHeight: 'calc(100vh - 32px)',
+          overflowY: 'auto',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline' }}>
-          <div style={{ fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', fontSize: 12 }}>
-            {state.uiMode === 'city' ? 'City Portfolio' : 'Stock Portfolio'}
+        {/* Portfolio panel */}
+        <div
+          style={{
+            padding: '14px 16px',
+            borderRadius: 14,
+            background: 'rgba(255,255,255,0.08)',
+            border: '1px solid rgba(255,255,255,0.18)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            color: 'rgba(255,255,255,0.92)',
+            pointerEvents: 'auto',
+            minWidth: 260,
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline' }}>
+            <div style={{ fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', fontSize: 12 }}>
+              {state.uiMode === 'city' ? 'City Portfolio' : 'Stock Portfolio'}
+            </div>
+            <div style={{ fontWeight: 700, fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>Year {state.year}</div>
           </div>
-          <div style={{ fontWeight: 700, fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>Year {state.year}</div>
-        </div>
 
-        <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr auto', gap: 8, fontSize: 13 }}>
-          <div style={{ color: 'rgba(255,255,255,0.6)' }}>Cash</div>
-          <div style={{ fontWeight: 700 }}>{fmt(state.player.cash)}</div>
+          <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr auto', gap: 8, fontSize: 13 }}>
+            <div style={{ color: 'rgba(255,255,255,0.6)' }}>Cash</div>
+            <div style={{ fontWeight: 700 }}>{fmt(state.player.cash)}</div>
 
-          <div style={{ color: 'rgba(255,255,255,0.6)' }}>Invested value</div>
-          <div style={{ fontWeight: 700 }}>{fmt(invested)}</div>
+            <div style={{ color: 'rgba(255,255,255,0.6)' }}>Invested value</div>
+            <div style={{ fontWeight: 700 }}>{fmt(invested)}</div>
 
-          <div style={{ color: 'rgba(255,255,255,0.6)' }}>Net worth</div>
-          <div style={{ fontWeight: 800 }}>{fmt(worth)}</div>
+            <div style={{ color: 'rgba(255,255,255,0.6)' }}>Net worth</div>
+            <div style={{ fontWeight: 800 }}>{fmt(worth)}</div>
 
-          <div style={{ color: 'rgba(255,255,255,0.6)' }}>Gain / loss</div>
-          <div style={{ fontWeight: 800, color: pnlColor }}>{pnl >= 0 ? '+' : ''}{fmt(pnl)}</div>
-        </div>
-
-        {hint && (
-          <div style={{ marginTop: 10, fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>
-            {hint}
+            <div style={{ color: 'rgba(255,255,255,0.6)' }}>Gain / loss</div>
+            <div style={{ fontWeight: 800, color: pnlColor }}>{pnl >= 0 ? '+' : ''}{fmt(pnl)}</div>
           </div>
-        )}
 
-        {state.lastActionMessage && (
-          <div style={{ marginTop: 10, fontSize: 12, color: 'rgba(255,255,255,0.82)' }}>
-            {state.lastActionMessage}
-          </div>
-        )}
-
-        {/* Stocks dropdown */}
-        <div style={{ marginTop: 12 }}>
-          <button
-            onClick={() => setStocksOpen((v) => !v)}
-            style={{
-              width: '100%',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              background: 'rgba(255,255,255,0.07)',
-              border: '1px solid rgba(255,255,255,0.15)',
-              borderRadius: 8,
-              color: 'rgba(255,255,255,0.85)',
-              padding: '6px 10px',
-              fontSize: 12,
-              fontWeight: 700,
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              cursor: 'pointer',
-            }}
-          >
-            <span>My Stocks</span>
-            <span style={{ fontSize: 10 }}>{stocksOpen ? '▲' : '▼'}</span>
-          </button>
-
-          {stocksOpen && (
-            <div
-              style={{
-                marginTop: 6,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 4,
-              }}
-            >
-              {ownedAssets.length === 0 ? (
-                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', padding: '4px 2px' }}>
-                  No positions yet.
-                </div>
-              ) : (
-                ownedAssets.map((asset) => {
-                  const value = holdingValue(asset);
-                  const ratio =
-                    asset.totalCostBasis > 0
-                      ? (value - asset.totalCostBasis) / asset.totalCostBasis
-                      : 0;
-                  const ratioColor =
-                    ratio >= 0 ? 'rgba(120,255,180,0.95)' : 'rgba(255,140,140,0.95)';
-                  return (
-                    <div
-                      key={asset.id}
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: '1fr auto auto',
-                        gap: '2px 8px',
-                        padding: '5px 6px',
-                        borderRadius: 6,
-                        background: 'rgba(255,255,255,0.05)',
-                        fontSize: 12,
-                        alignItems: 'center',
-                      }}
-                    >
-                      <div style={{ fontWeight: 700, color: 'rgba(255,255,255,0.9)' }}>
-                        {asset.symbol}
-                      </div>
-                      <div style={{ fontWeight: 700, color: ratioColor, textAlign: 'right' }}>
-                        {ratio >= 0 ? '+' : ''}{fmtPct(ratio)}
-                      </div>
-                      <button
-                        onClick={() => onSellAll(asset.id, asset.sharesOwned)}
-                        style={{
-                          gridRow: '1 / span 2',
-                          gridColumn: 3,
-                          padding: '3px 7px',
-                          borderRadius: 5,
-                          border: '1px solid rgba(255,100,100,0.5)',
-                          background: 'rgba(255,80,80,0.15)',
-                          color: 'rgba(255,160,160,0.95)',
-                          fontSize: 11,
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        Sell all
-                      </button>
-                      <div style={{ color: 'rgba(255,255,255,0.5)' }}>
-                        {asset.sharesOwned} share{asset.sharesOwned !== 1 ? 's' : ''}
-                      </div>
-                      <div style={{ color: 'rgba(255,255,255,0.75)', textAlign: 'right' }}>
-                        {fmt(value)}
-                      </div>
-                    </div>
-                  );
-                })
-              )}
+          {hint && (
+            <div style={{ marginTop: 10, fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>
+              {hint}
             </div>
           )}
+
+          {state.lastActionMessage && (
+            <div style={{ marginTop: 10, fontSize: 12, color: 'rgba(255,255,255,0.82)' }}>
+              {state.lastActionMessage}
+            </div>
+          )}
+
+          {/* Stocks dropdown */}
+          <div style={{ marginTop: 12 }}>
+            <button
+              onClick={() => setStocksOpen((v) => !v)}
+              style={{
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                background: 'rgba(255,255,255,0.07)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                borderRadius: 8,
+                color: 'rgba(255,255,255,0.85)',
+                padding: '6px 10px',
+                fontSize: 12,
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+              }}
+            >
+              <span>My Stocks</span>
+              <span style={{ fontSize: 10 }}>{stocksOpen ? '▲' : '▼'}</span>
+            </button>
+
+            {stocksOpen && (
+              <div
+                style={{
+                  marginTop: 6,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 4,
+                }}
+              >
+                {ownedAssets.length === 0 ? (
+                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', padding: '4px 2px' }}>
+                    No positions yet.
+                  </div>
+                ) : (
+                  ownedAssets.map((asset) => {
+                    const value = holdingValue(asset);
+                    const ratio =
+                      asset.totalCostBasis > 0
+                        ? (value - asset.totalCostBasis) / asset.totalCostBasis
+                        : 0;
+                    const ratioColor =
+                      ratio >= 0 ? 'rgba(120,255,180,0.95)' : 'rgba(255,140,140,0.95)';
+                    return (
+                      <div
+                        key={asset.id}
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: '1fr auto auto',
+                          gap: '2px 8px',
+                          padding: '5px 6px',
+                          borderRadius: 6,
+                          background: 'rgba(255,255,255,0.05)',
+                          fontSize: 12,
+                          alignItems: 'center',
+                        }}
+                      >
+                        <div style={{ fontWeight: 700, color: 'rgba(255,255,255,0.9)' }}>
+                          {asset.symbol}
+                        </div>
+                        <div style={{ fontWeight: 700, color: ratioColor, textAlign: 'right' }}>
+                          {ratio >= 0 ? '+' : ''}{fmtPct(ratio)}
+                        </div>
+                        <button
+                          onClick={() => onSellAll(asset.id, asset.sharesOwned)}
+                          style={{
+                            gridRow: '1 / span 2',
+                            gridColumn: 3,
+                            padding: '3px 7px',
+                            borderRadius: 5,
+                            border: '1px solid rgba(255,100,100,0.5)',
+                            background: 'rgba(255,80,80,0.15)',
+                            color: 'rgba(255,160,160,0.95)',
+                            fontSize: 11,
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          Sell all
+                        </button>
+                        <div style={{ color: 'rgba(255,255,255,0.5)' }}>
+                          {asset.sharesOwned} share{asset.sharesOwned !== 1 ? 's' : ''}
+                        </div>
+                        <div style={{ color: 'rgba(255,255,255,0.75)', textAlign: 'right' }}>
+                          {fmt(value)}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            )}
+          </div>
         </div>
+
+        {/* Asset panel (or any other children) rendered below portfolio panel */}
+        {children}
       </div>
 
+      {/* Right column — inflation badge + advance button */}
       <div
         style={{
           position: 'absolute',
@@ -251,4 +270,3 @@ export function Hud({
     </>
   );
 }
-

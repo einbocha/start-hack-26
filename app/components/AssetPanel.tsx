@@ -48,9 +48,6 @@ export function AssetPanel({
   return (
     <div
       style={{
-        position: 'absolute',
-        right: '72px',
-        top: '16px',
         width: 320,
         background: 'rgba(255, 255, 255, 0.08)',
         backdropFilter: 'blur(12px)',

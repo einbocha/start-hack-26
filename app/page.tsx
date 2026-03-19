@@ -687,17 +687,17 @@ export default function Home() {
         onNextYear={() => dispatch({ type: 'ADVANCE_YEAR' })}
         onToggleMode={() => dispatch({ type: 'TOGGLE_UI_MODE' })}
         onSellAll={(assetId, qty) => dispatch({ type: 'SELL', assetId, qty })}
-      />
-
-      {panelOpen && selectedAsset && (
-        <AssetPanel
-          asset={selectedAsset}
-          cash={state.player.cash}
-          onClose={() => dispatch({ type: 'SELECT_ASSET', assetId: null })}
-          onBuy={(qty) => dispatch({ type: 'BUY', assetId: selectedAsset.id, qty })}
-          onSell={(qty) => dispatch({ type: 'SELL', assetId: selectedAsset.id, qty })}
-        />
-      )}
+      >
+        {panelOpen && selectedAsset && (
+          <AssetPanel
+            asset={selectedAsset}
+            cash={state.player.cash}
+            onClose={() => dispatch({ type: 'SELECT_ASSET', assetId: null })}
+            onBuy={(qty) => dispatch({ type: 'BUY', assetId: selectedAsset.id, qty })}
+            onSell={(qty) => dispatch({ type: 'SELL', assetId: selectedAsset.id, qty })}
+          />
+        )}
+      </Hud>
 
       <div
         style={{
