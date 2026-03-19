@@ -73,12 +73,31 @@ function useObjWithMtl(opts: { obj: string; mtl: string; resourcePath: string })
           shininess?: number;
           specular?: THREE.Color;
           emissive?: THREE.Color;
+          polygonOffset?: boolean;
+          polygonOffsetFactor?: number;
+          polygonOffsetUnits?: number;
         };
-        if (anyMat.map) anyMat.map.colorSpace = THREE.SRGBColorSpace;
+        if (anyMat.map) {
+          anyMat.map.colorSpace = THREE.SRGBColorSpace;
+          anyMat.map.flipY = true;
+        
+          anyMat.map.generateMipmaps = false;
+          anyMat.map.minFilter = THREE.NearestFilter;
+          anyMat.map.magFilter = THREE.NearestFilter;
+        
+          anyMat.map.wrapS = THREE.ClampToEdgeWrapping;
+          anyMat.map.wrapT = THREE.ClampToEdgeWrapping;
+        
+          anyMat.map.needsUpdate = true;
+        }
         // MTLLoader often creates MeshPhongMaterial which can blow out under strong lights.
         if (typeof anyMat.shininess === 'number') anyMat.shininess = Math.min(anyMat.shininess, 18);
         if (anyMat.specular instanceof THREE.Color) anyMat.specular.multiplyScalar(0.2);
         if (anyMat.emissive instanceof THREE.Color) anyMat.emissive.multiplyScalar(0.6);
+        // Help against z-fighting when meshes are coplanar (roads, ground, outlines).
+        anyMat.polygonOffset = true;
+        anyMat.polygonOffsetFactor = 2;
+        anyMat.polygonOffsetUnits = 2;
         if (anyMat.needsUpdate !== undefined) anyMat.needsUpdate = true;
       }
     });
@@ -86,6 +105,22 @@ function useObjWithMtl(opts: { obj: string; mtl: string; resourcePath: string })
 
   return obj;
 }
+
+type MapHouse = {
+  id: string;
+  type: string;
+  position: [number, number, number];
+  rotation: [number, number, number, number]; // quaternion x,y,z,w
+  scale: [number, number, number];
+  locked: boolean;
+  price: number;
+};
+
+type MapJson = {
+  scene: string;
+  unit: string;
+  houses: MapHouse[];
+};
 
 function createOutlineClone(root: THREE.Object3D, material: THREE.Material) {
   const outlineRoot = root.clone(true);
@@ -279,23 +314,68 @@ function TickerBubble({
   );
 }
 
+function normalizeTypeName(type: string) {
+  // "building-d (2)" -> "building-d"
+  return type.replace(/\s*\(\d+\)\s*$/, '');
+}
+
+function specForMapType(type: string): { obj: string; mtl: string; resourcePath: string } | null {
+  const base = normalizeTypeName(type);
+  if (base.startsWith('road-')) {
+    return { obj: `/roads/${base}.obj`, mtl: `/roads/${base}.mtl`, resourcePath: '/roads/' };
+  }
+  if (base.startsWith('building-type-')) {
+    // Suburban pack uses building-type-* naming.
+    return { obj: `/suburban/${base}.obj`, mtl: `/suburban/${base}.mtl`, resourcePath: '/suburban/' };
+  }
+
+  // Mapper for commercial vs industrial buildings:
+  //  - JSON uses building-x.* for industrial and comm-building-x.* for commercial
+  //  - Commercial assets on disk are still named building-x.* in /commercial
+  if (base.startsWith('comm-building-')) {
+    const name = base.replace(/^comm-/, ''); // comm-building-a -> building-a
+    return { obj: `/commercial/${name}.obj`, mtl: `/commercial/${name}.mtl`, resourcePath: '/commercial/' };
+  }
+
+   // Certain building families only exist in commercial (e.g. skyscrapers).
+   if (base.startsWith('building-skyscraper-')) {
+     return {
+       obj: `/commercial/${base}.obj`,
+       mtl: `/commercial/${base}.mtl`,
+       resourcePath: '/commercial/',
+     };
+   }
+
+  if (base.startsWith('building-') || base.startsWith('detail-') || base.startsWith('chimney-')) {
+    // Default: treat as industrial pack naming.
+    return { obj: `/industrial/${base}.obj`, mtl: `/industrial/${base}.mtl`, resourcePath: '/industrial/' };
+  }
+  return null;
+}
+
 function CollapseIntoGround({
   uiMode,
   position,
-  rotation,
+  quaternion,
   children,
   sink = 0.45,
   lastInches = 0.12,
 }: {
   uiMode: 'city' | 'stocks';
   position: [number, number, number];
-  rotation?: [number, number, number];
+  quaternion?: THREE.Quaternion;
   children: React.ReactNode;
   sink?: number;
   lastInches?: number;
 }) {
   const sRef = useRef(1);
   const gRef = useRef<THREE.Group | null>(null);
+
+  useEffect(() => {
+    if (gRef.current && quaternion) {
+      gRef.current.quaternion.copy(quaternion);
+    }
+  }, [quaternion]);
 
   useFrame((_s, dt) => {
     const target = uiMode === 'city' ? 1 : 0;
@@ -309,9 +389,28 @@ function CollapseIntoGround({
   });
 
   return (
-    <group ref={gRef} position={position} rotation={rotation}>
+    <group ref={gRef} position={position}>
       {children}
     </group>
+  );
+}
+
+function ModelBatch({
+  spec,
+  placements,
+  render,
+}: {
+  spec: { obj: string; mtl: string; resourcePath: string };
+  placements: Array<{ key: string; position: [number, number, number]; quat: THREE.Quaternion; meta: unknown }>;
+  render: (base: THREE.Object3D, p: { key: string; position: [number, number, number]; quat: THREE.Quaternion; meta: unknown }) => React.ReactNode;
+}) {
+  const base = useObjWithMtl(spec);
+  return (
+    <>
+      {placements.map((p) => (
+        <group key={p.key}>{render(base, p)}</group>
+      ))}
+    </>
   );
 }
 
@@ -320,163 +419,20 @@ function City({
   uiMode,
   selectedId,
   onToggleBuilding,
+  map,
 }: {
   assets: Asset[];
   uiMode: 'city' | 'stocks';
   selectedId: string | null;
   onToggleBuilding: (id: string) => void;
+  map: MapJson | null;
 }) {
-  const roadStraight = useObjWithMtl(roadVisuals.straight);
-  const roadCross = useObjWithMtl(roadVisuals.cross);
-
-  // Load all visual “archetypes” once. (No hooks in loops.)
-  const modelHospital = useObjWithMtl(visualFor('Hospital'));
-  const modelFactory = useObjWithMtl(visualFor('Factory'));
-  const modelRetailShop = useObjWithMtl(visualFor('RetailShop'));
-  const modelSkyscraper = useObjWithMtl(visualFor('Skyscraper'));
-  const modelPostBuilding = useObjWithMtl(visualFor('PostBuilding'));
-  const modelBank = useObjWithMtl(visualFor('Bank'));
-  const modelArcade = useObjWithMtl(visualFor('Arcade'));
-  const modelOffice = useObjWithMtl(visualFor('Office'));
-  const modelETF = useObjWithMtl(visualFor('ETF'));
-
-  // Extra “NPC” skyline variety (no gameplay).
-  const npcA = useObjWithMtl({ obj: '/commercial/building-c.obj', mtl: '/commercial/building-c.mtl', resourcePath: '/commercial/' });
-  const npcB = useObjWithMtl({ obj: '/commercial/building-l.obj', mtl: '/commercial/building-l.mtl', resourcePath: '/commercial/' });
-  const npcC = useObjWithMtl({ obj: '/industrial/building-q.obj', mtl: '/industrial/building-q.mtl', resourcePath: '/industrial/' });
-
-  const baseFor = (a: Asset) => {
-    switch (a.buildingVisualType) {
-      case 'Hospital':
-        return modelHospital;
-      case 'Factory':
-        return modelFactory;
-      case 'RetailShop':
-        return modelRetailShop;
-      case 'Skyscraper':
-        return modelSkyscraper;
-      case 'PostBuilding':
-        return modelPostBuilding;
-      case 'Bank':
-        return modelBank;
-      case 'Arcade':
-        return modelArcade;
-      case 'Office':
-        return modelOffice;
-      case 'ETF':
-        return modelETF;
-    }
-  };
-
-  const businessFor = (a: Asset) => {
-    switch (a.buildingVisualType) {
-      case 'Hospital':
-        return 'City Hospital';
-      case 'Factory':
-        return 'Factory Works';
-      case 'RetailShop':
-        return 'Tech Shop';
-      case 'Skyscraper':
-        return 'HQ Tower';
-      case 'PostBuilding':
-        return 'Post Office';
-      case 'Bank':
-        return 'City Bank';
-      case 'Arcade':
-        return 'Arcade & Cinema';
-      case 'Office':
-        return 'Office Plaza';
-      case 'ETF':
-        return 'Index Hub';
-    }
-  };
-
-  const npcBases = useMemo(() => [npcA, npcB, npcC, modelSkyscraper, modelFactory, modelRetailShop], [npcA, npcB, npcC, modelSkyscraper, modelFactory, modelRetailShop]);
-
-  const rng01 = (seed: number) => {
-    // Simple deterministic PRNG (mulberry32-like) local to placement.
-    let t = (seed + 0x6D2B79F5) >>> 0;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-
-  const placements = useMemo(() => {
-    const grid = 14;
-    const cell = 1;
-    const roadEvery = 4;
-
-    const items: Array<
-      | { kind: 'asset'; placementId: string; assetId: string; x: number; z: number; rotY: number }
-      | { kind: 'npc'; placementId: string; npcIndex: number; x: number; z: number; rotY: number }
-      | { kind: 'roadStraight'; x: number; z: number; rotY: number }
-      | { kind: 'roadCross'; x: number; z: number }
-    > = [];
-
-    const half = (grid - 1) / 2;
-    const placeable = assets;
-    const buildableCells: Array<{ gx: number; gz: number }> = [];
-
-    for (let gx = 0; gx < grid; gx++) {
-      for (let gz = 0; gz < grid; gz++) {
-        const onRoadX = gx % roadEvery === 0;
-        const onRoadZ = gz % roadEvery === 0;
-        if (onRoadX || onRoadZ) continue; // roads handled in full grid pass below
-        buildableCells.push({ gx, gz });
-      }
-    }
-
-    // Shuffle buildable cells deterministically and place assets across the map.
-    const shuffled = [...buildableCells];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const r = rng01(26 + i * 997);
-      const j = Math.floor(r * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-
-    const used = new Set<string>();
-    const assetCount = Math.min(placeable.length, shuffled.length);
-    for (let i = 0; i < assetCount; i++) {
-      const { gx, gz } = shuffled[i];
-      const x = (gx - half) * cell;
-      const z = (gz - half) * cell;
-      const rotY = ((gx + gz) % 4) * (Math.PI / 2);
-      const a = placeable[i];
-      items.push({ kind: 'asset', placementId: `asset-${gx}-${gz}`, assetId: a.id, x, z, rotY });
-      used.add(`${gx}-${gz}`);
-    }
-
-    // Fill remaining lots with NPC buildings (no gameplay).
-    for (const { gx, gz } of buildableCells) {
-      if (used.has(`${gx}-${gz}`)) continue;
-      const x = (gx - half) * cell;
-      const z = (gz - half) * cell;
-      const rotY = ((gx * 31 + gz * 17) % 4) * (Math.PI / 2);
-      const npcIndex = Math.floor(rng01(1337 + gx * 1000 + gz * 7) * 1000) % 6;
-      items.push({ kind: 'npc', placementId: `npc-${gx}-${gz}`, npcIndex, x, z, rotY });
-    }
-
-    for (let gx = 0; gx < grid; gx++) {
-      for (let gz = 0; gz < grid; gz++) {
-        const x = (gx - half) * cell;
-        const z = (gz - half) * cell;
-        const onRoadX = gx % roadEvery === 0;
-        const onRoadZ = gz % roadEvery === 0;
-
-        if (onRoadX && onRoadZ) {
-          items.push({ kind: 'roadCross', x, z });
-          continue;
-        }
-        if (onRoadX || onRoadZ) {
-          const rotY = onRoadX ? roadVisuals.straight.xAxisRotY : roadVisuals.straight.zAxisRotY;
-          items.push({ kind: 'roadStraight', x, z, rotY });
-          continue;
-        }
-      }
-    }
-
-    return { items };
-  }, [assets]);
+  const buildingSpots = useMemo(() => {
+    if (!map) return null;
+    const buildings = map.houses.filter((h) => normalizeTypeName(h.type).startsWith('building-'));
+    const roads = map.houses.filter((h) => normalizeTypeName(h.type).startsWith('road-'));
+    return { buildings, roads };
+  }, [map]);
 
   const outlineMat = useMemo(
     () =>
@@ -511,86 +467,116 @@ function City({
     [],
   );
 
+  const assigned = useMemo(() => {
+    if (!buildingSpots) return null;
+    const seed = 26;
+    const rng = (n: number) => {
+      let t = (seed + n * 997 + 0x6D2B79F5) >>> 0;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+    const shuffled = [...buildingSpots.buildings];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(rng(i) * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    const assetList = [...assets];
+    const map = new Map<string, Asset>();
+    const count = Math.min(assetList.length, shuffled.length);
+    for (let i = 0; i < count; i++) map.set(shuffled[i].id, assetList[i]);
+    return map;
+  }, [assets, buildingSpots]);
+
+  const batches = useMemo(() => {
+    if (!map || !assigned) return null;
+    const groups = new Map<
+      string,
+      {
+        spec: { obj: string; mtl: string; resourcePath: string };
+        list: Array<{ key: string; position: [number, number, number]; quat: THREE.Quaternion; meta: unknown }>;
+      }
+    >();
+    const flipY = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+
+    for (const h of map.houses) {
+      const spec = specForMapType(h.type);
+      if (!spec) continue;
+      // Unity -> Three.js:
+      // position: (x, y, z)  -> (x, y, -z)
+      // quaternion: (x, y, z, w) -> (-x, -y, z, w), then rotateY(π) to fix facing
+      const uq = h.rotation;
+      const quat = new THREE.Quaternion(-uq[0], -uq[1], uq[2], uq[3]).normalize();
+      quat.premultiply(flipY);
+      const key = `${spec.resourcePath}|${spec.obj}`;
+      if (!groups.has(key)) groups.set(key, { spec, list: [] });
+      groups.get(key)!.list.push({
+        key: h.id,
+        position: [h.position[0], h.position[1], -h.position[2]],
+        quat,
+        meta: { house: h, asset: assigned.get(h.id) ?? null },
+      });
+    }
+    return Array.from(groups.values());
+  }, [map, assigned]);
+
+  if (!map || !assigned || !batches) return null;
+
   return (
     <>
-      {/* 3D city meshes: each object collapses individually */}
-      {placements.items.map((p, idx) => {
-        if (p.kind === 'roadCross') {
-          return (
-            <CollapseIntoGround key={`roadCross-${idx}`} uiMode={uiMode} position={[p.x, 0, p.z]}>
-              <primitive object={roadCross.clone(true)} />
-            </CollapseIntoGround>
-          );
-        }
-        if (p.kind === 'roadStraight') {
-          return (
-            <CollapseIntoGround
-              key={`roadStraight-${idx}`}
-              uiMode={uiMode}
-              position={[p.x, 0, p.z]}
-              rotation={[0, p.rotY, 0]}
-            >
-              <primitive
-                object={roadStraight.clone(true)}
-              />
-            </CollapseIntoGround>
-          );
-        }
-        if (p.kind === 'npc') {
-          const base = npcBases[p.npcIndex % npcBases.length];
-          return (
-            <CollapseIntoGround
-              key={p.placementId}
-              uiMode={uiMode}
-              position={[p.x, 0, p.z]}
-              rotation={[0, p.rotY, 0]}
-            >
-              <primitive object={base.clone(true)} />
-            </CollapseIntoGround>
-          );
-        }
-        const a = assets.find((x) => x.id === p.assetId);
-        if (!a) return null;
-        const base = baseFor(a);
-        return (
-          <CollapseIntoGround
-            key={p.placementId}
-            uiMode={uiMode}
-            position={[p.x, 0, p.z]}
-            rotation={[0, p.rotY, 0]}
-          >
-            <SelectableBuilding
-              id={p.assetId}
-              base={base}
-              selected={selectedId === p.assetId}
-              locked={!a.unlocked}
-              assetType={a.type}
-              showInvestableOutline={a.type === 'stock' && a.unlocked}
-              uiMode={uiMode}
-              position={[0, 0, 0]}
-              rotY={0}
-              onToggle={onToggleBuilding}
-              outlineMaterial={outlineMat}
-              selectedOutlineMaterial={selectedOutlineMat}
-            />
-          </CollapseIntoGround>
-        );
-      })}
+      {batches.map((b) => (
+        <ModelBatch
+          key={`${b.spec.resourcePath}${b.spec.obj}`}
+          spec={b.spec}
+          placements={b.list}
+          render={(base, p) => {
+            const meta = p.meta as { house: MapHouse; asset: Asset | null };
+            const isRoad = normalizeTypeName(meta.house.type).startsWith('road-');
+            const asset = meta.asset;
 
-      {/* Stock-mode overlay: ticker bubbles do NOT shrink with the city */}
+            if (isRoad || !asset) {
+              return (
+                <CollapseIntoGround uiMode={uiMode} position={p.position} quaternion={p.quat}>
+                  <primitive object={base.clone(true)} />
+                </CollapseIntoGround>
+              );
+            }
+
+            return (
+              <CollapseIntoGround uiMode={uiMode} position={p.position} quaternion={p.quat}>
+                <SelectableBuilding
+                  id={asset.id}
+                  base={base}
+                  selected={selectedId === asset.id}
+                  locked={!asset.unlocked}
+                  assetType={asset.type}
+                  showInvestableOutline={asset.type === 'stock' && asset.unlocked}
+                  uiMode={uiMode}
+                  position={[0, 0, 0]}
+                  rotY={0}
+                  onToggle={onToggleBuilding}
+                  outlineMaterial={outlineMat}
+                  selectedOutlineMaterial={selectedOutlineMat}
+                />
+              </CollapseIntoGround>
+            );
+          }}
+        />
+      ))}
+
       {uiMode === 'stocks' &&
-        placements.items.map((p) => {
-          if (p.kind !== 'asset') return null;
-          const a = assets.find((x) => x.id === p.assetId);
-          if (!a) return null;
+        Array.from(assigned.entries()).map(([houseId, asset]) => {
+          const h = map.houses.find((x) => x.id === houseId);
+          if (!h) return null;
           return (
             <TickerBubble
-              key={`bubble-${p.placementId}`}
-              symbol={a.symbol}
-              locked={!a.unlocked}
-              selected={selectedId === a.id}
-              position={[p.x, 0.95, p.z]}
-              onSelect={() => onToggleBuilding(a.id)}
+              key={`bubble-${houseId}`}
+              symbol={asset.symbol}
+              locked={!asset.unlocked}
+              selected={selectedId === asset.id}
+              // Match Unity -> Three position flip used for meshes: (x, y, z) -> (x, y, -z)
+              position={[h.position[0], h.position[1] + 0.95, -h.position[2]]}
+              onSelect={() => onToggleBuilding(asset.id)}
             />
           );
         })}
@@ -603,6 +589,8 @@ export default function Home() {
     createInitialState({ startingCash: 10_000, seed: 26, year: 2026 }),
   );
 
+  const [map, setMap] = useReducer((_: MapJson | null, next: MapJson | null) => next, null);
+
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.code !== 'Space') return;
@@ -611,6 +599,22 @@ export default function Home() {
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/map.json')
+      .then((r) => r.json())
+      .then((j: MapJson) => {
+        if (cancelled) return;
+        setMap(j);
+      })
+      .catch(() => {
+        if (!cancelled) setMap(null);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const selectedAsset = state.selectedAssetId ? state.assets[state.selectedAssetId] : null;
@@ -668,6 +672,7 @@ export default function Home() {
             onToggleBuilding={(id) =>
               dispatch({ type: 'SELECT_ASSET', assetId: state.selectedAssetId === id ? null : id })
             }
+            map={map}
           />
         </Suspense>
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
