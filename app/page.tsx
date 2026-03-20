@@ -21,10 +21,15 @@ import { gameReducer, createInitialState } from '../game/reducer';
 import { activeEventsForYear, normalizeEventCatalog } from '../game/events';
 import { Asset, Market, Sector, VolatilityLabel } from '../game/types';
 import { visualFor, roadVisuals } from '../game/visuals';
+import { netWorth } from '../game/portfolio';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
 
+const RUN_LENGTH_YEARS = 100;
 const PUBLIC_BASE_PATH = (process.env.NEXT_PUBLIC_BASE_PATH ?? '').replace(/\/+$/, '');
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://jfzmcdhuptdsyekoijri.supabase.co';
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '';
+const SUPABASE_TABLE = process.env.NEXT_PUBLIC_SUPABASE_TABLE ?? 'Easy';
 const runtimeBasePath = () => {
   if (PUBLIC_BASE_PATH) return PUBLIC_BASE_PATH;
   if (typeof window === 'undefined') return '';
@@ -42,6 +47,83 @@ const publicUrl = (path: string) => {
   // Fallback to relative paths so assets still resolve under nested hosts.
   return path.replace(/^\/+/, '');
 };
+
+function difficultyToBucket(d: Difficulty): DifficultyBucket {
+  return d === 'min' ? 'easy' : d === 'mid' ? 'medium' : 'hard';
+}
+
+function bucketToCode(b: DifficultyBucket): number {
+  return b === 'easy' ? 0 : b === 'medium' ? 1 : 2;
+}
+
+async function supabaseFetch(path: string, init?: RequestInit) {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    apikey: SUPABASE_ANON_KEY,
+    Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+    ...(init?.headers as Record<string, string> | undefined),
+  };
+  return fetch(`${SUPABASE_URL}${path}`, { ...init, headers });
+}
+
+async function fetchLeaderboardForBucket(bucket: DifficultyBucket): Promise<LeaderboardRow[]> {
+  if (!SUPABASE_ANON_KEY) return [];
+  const code = bucketToCode(bucket);
+  // Primary: lowercase `difficulty` column.
+  const byLower = await supabaseFetch(
+    `/rest/v1/${encodeURIComponent(SUPABASE_TABLE)}?select=id,name,score,difficulty&difficulty=eq.${code}&order=score.desc&limit=10`,
+  );
+  if (byLower.ok) return (await byLower.json()) as LeaderboardRow[];
+
+  // Fallback: quoted uppercase column name "Difficulty".
+  const byUpper = await supabaseFetch(
+    `/rest/v1/${encodeURIComponent(SUPABASE_TABLE)}?select=id,name,score,Difficulty&Difficulty=eq.${code}&order=score.desc&limit=10`,
+  );
+  if (byUpper.ok) {
+    const rows = (await byUpper.json()) as Array<LeaderboardRow & { Difficulty?: number }>;
+    return rows.map((r) => ({ ...r, difficulty: r.difficulty ?? r.Difficulty }));
+  }
+
+  // Fallback: some schemas use `diff` instead.
+  const byDiff = await supabaseFetch(
+    `/rest/v1/${encodeURIComponent(SUPABASE_TABLE)}?select=id,name,score,diff&diff=eq.${code}&order=score.desc&limit=10`,
+  );
+  if (!byDiff.ok) return [];
+  const rows = (await byDiff.json()) as Array<LeaderboardRow & { diff?: number }>;
+  return rows.map((r) => ({ ...r, difficulty: r.difficulty ?? r.diff }));
+}
+
+async function submitScore(params: { name: string; score: number; bucket: DifficultyBucket }) {
+  if (!SUPABASE_ANON_KEY) throw new Error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY');
+  const safeName = params.name.trim().slice(0, 24) || 'Player';
+  const code = bucketToCode(params.bucket);
+  // Primary: lowercase `difficulty`.
+  const oneTable = await supabaseFetch(`/rest/v1/${encodeURIComponent(SUPABASE_TABLE)}`, {
+    method: 'POST',
+    headers: { Prefer: 'return=representation' },
+    body: JSON.stringify([{ name: safeName, score: Math.round(params.score), difficulty: code }]),
+  });
+  if (oneTable.ok) return;
+
+  // Fallback: quoted uppercase "Difficulty".
+  const byUpper = await supabaseFetch(`/rest/v1/${encodeURIComponent(SUPABASE_TABLE)}`, {
+    method: 'POST',
+    headers: { Prefer: 'return=representation' },
+    body: JSON.stringify([{ name: safeName, score: Math.round(params.score), Difficulty: code }]),
+  });
+  if (byUpper.ok) return;
+
+  // Fallback: some schemas use `diff` instead.
+  const byDiff = await supabaseFetch(`/rest/v1/${encodeURIComponent(SUPABASE_TABLE)}`, {
+    method: 'POST',
+    headers: { Prefer: 'return=representation' },
+    body: JSON.stringify([{ name: safeName, score: Math.round(params.score), diff: code }]),
+  });
+  if (byDiff.ok) return;
+
+  const txt = await byDiff.text();
+  throw new Error(txt || 'Failed to submit score');
+}
 
 // Cached edge geometries so selecting roads/countries doesn't repeatedly rebuild outlines.
 const edgesGeometryCache = new WeakMap<THREE.BufferGeometry, THREE.EdgesGeometry>();
@@ -96,11 +178,20 @@ const chartOptions = {
 } as const;
 
 type Difficulty = 'min' | 'mid' | 'max';
+type DifficultyBucket = 'easy' | 'medium' | 'hard';
+type LeaderboardRow = {
+  id: number | string;
+  name: string;
+  score: number;
+  difficulty?: number;
+  created_at?: string;
+};
 
 function useObjWithMtl(opts: { obj: string; mtl: string; resourcePath: string }) {
   const materials = useLoader(MTLLoader, opts.mtl, (loader) => {
     loader.setResourcePath(opts.resourcePath);
   });
+  const roadFallbackMap = useLoader(THREE.TextureLoader, publicUrl('/industrial/Textures/colormap_finance.png'));
 
   const obj = useLoader(OBJLoader, opts.obj, (loader) => {
     materials.preload();
@@ -108,6 +199,7 @@ function useObjWithMtl(opts: { obj: string; mtl: string; resourcePath: string })
   });
 
   useEffect(() => {
+    const isRoadPack = opts.resourcePath.includes('/roads/');
     obj.traverse((child) => {
       if (!(child instanceof THREE.Mesh)) return;
       child.castShadow = true;
@@ -126,6 +218,11 @@ function useObjWithMtl(opts: { obj: string; mtl: string; resourcePath: string })
           polygonOffsetFactor?: number;
           polygonOffsetUnits?: number;
         };
+        // Road MTLs reference `Textures/colormap.png`, but that file is missing in the
+        // current pack. On some hosts this causes inconsistent material fallback visuals.
+        if (isRoadPack && !anyMat.map) {
+          anyMat.map = roadFallbackMap;
+        }
         if (anyMat.map) {
           anyMat.map.colorSpace = THREE.SRGBColorSpace;
           // Don't force flipY globally; some loaders/textures already come correctly oriented.
@@ -138,10 +235,9 @@ function useObjWithMtl(opts: { obj: string; mtl: string; resourcePath: string })
           anyMat.map.magFilter = THREE.LinearFilter;
 
           anyMat.map.anisotropy = Math.min(8, anyMat.map.anisotropy || 1);
-          // Respect UV wrapping behavior. Clamping can cause edge stretching artifacts
-          // when UVs are outside [0..1] or when models rely on repeating.
-          anyMat.map.wrapS = THREE.RepeatWrapping;
-          anyMat.map.wrapT = THREE.RepeatWrapping;
+          // Roads are atlas-like and look wrong with repeat on some hosts/GPU drivers.
+          anyMat.map.wrapS = isRoadPack ? THREE.ClampToEdgeWrapping : THREE.RepeatWrapping;
+          anyMat.map.wrapT = isRoadPack ? THREE.ClampToEdgeWrapping : THREE.RepeatWrapping;
 
           anyMat.map.needsUpdate = true;
         }
@@ -156,7 +252,7 @@ function useObjWithMtl(opts: { obj: string; mtl: string; resourcePath: string })
         if (anyMat.needsUpdate !== undefined) anyMat.needsUpdate = true;
       }
     });
-  }, [obj]);
+  }, [obj, opts.resourcePath, roadFallbackMap]);
 
   return obj;
 }
@@ -1708,6 +1804,17 @@ export default function Home() {
   const [titleVisible, setTitleVisible] = useState(false);
 
   const [difficulty, setDifficulty] = useState<Difficulty>('mid');
+  const [leaderboard, setLeaderboard] = useState<Record<DifficultyBucket, LeaderboardRow[]>>({
+    easy: [],
+    medium: [],
+    hard: [],
+  });
+  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+  const [leaderboardError, setLeaderboardError] = useState<string | null>(null);
+  const [leaderboardView, setLeaderboardView] = useState<DifficultyBucket>('easy');
+  const [pendingRun, setPendingRun] = useState<{ score: number; bucket: DifficultyBucket } | null>(null);
+  const [playerName, setPlayerName] = useState('');
+  const [savingScore, setSavingScore] = useState(false);
 
   const startingCash = difficulty === 'min' ? 5_000 : difficulty === 'mid' ? 10_000 : 20_000;
   const [eventCatalog, setEventCatalog] = useState<ReturnType<typeof normalizeEventCatalog>>([]);
@@ -1826,6 +1933,55 @@ export default function Home() {
     }, 20_000);
     return () => window.clearTimeout(t);
   }, [state.activeEvents, state.year]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      setLeaderboardLoading(true);
+      setLeaderboardError(null);
+      try {
+        const [easy, medium, hard] = await Promise.all([
+          fetchLeaderboardForBucket('easy'),
+          fetchLeaderboardForBucket('medium'),
+          fetchLeaderboardForBucket('hard'),
+        ]);
+        if (cancelled) return;
+        setLeaderboard({ easy, medium, hard });
+      } catch (e) {
+        if (!cancelled) setLeaderboardError(e instanceof Error ? e.message : 'Failed to load leaderboard');
+      } finally {
+        if (!cancelled) setLeaderboardLoading(false);
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const completedRunYearRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!started) {
+      // Allow the next run to trigger completion again at the same end year.
+      completedRunYearRef.current = null;
+    }
+  }, [started]);
+
+  useEffect(() => {
+    if (!started) return;
+    const startYear = state.inflationHistory[0]?.year ?? state.year;
+    const endYear = startYear + (RUN_LENGTH_YEARS - 1);
+    if (state.year < endYear && !state.lastActionMessage?.startsWith('Run complete:')) return;
+    if (completedRunYearRef.current === state.year) return;
+    completedRunYearRef.current = state.year;
+    const finalScore = Math.round(netWorth(state));
+    const bucket = difficultyToBucket(difficulty);
+    setPendingRun({ score: finalScore, bucket });
+    setLeaderboardView(bucket);
+    setPlayerName('');
+    // Return to main screen: camera smoothly moves back via existing start/menu camera logic.
+    setStarted(false);
+  }, [started, state.lastActionMessage, state.year, state.assets, state.player.cash, difficulty]);
 
   const selectedAsset = state.selectedAssetId ? state.assets[state.selectedAssetId] : null;
   const panelOpen = selectedAsset !== null;
@@ -2141,8 +2297,185 @@ export default function Home() {
               );
             })}
           </div>
+
+          <div
+            style={{
+              width: 'min(760px, 92vw)',
+              padding: '12px 14px',
+              borderRadius: 14,
+              border: '1px solid rgba(255,255,255,0.20)',
+              background: 'rgba(255,255,255,0.07)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              color: 'rgba(255,255,255,0.92)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+              <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Leaderboard</div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {(['easy', 'medium', 'hard'] as DifficultyBucket[]).map((b) => (
+                  <button
+                    key={b}
+                    onClick={() => setLeaderboardView(b)}
+                    style={{
+                      all: 'unset',
+                      cursor: 'pointer',
+                      padding: '4px 10px',
+                      borderRadius: 999,
+                      border: leaderboardView === b ? '1px solid rgba(125,211,252,0.55)' : '1px solid rgba(255,255,255,0.2)',
+                      background: leaderboardView === b ? 'rgba(125,211,252,0.14)' : 'rgba(255,255,255,0.05)',
+                      fontSize: 11,
+                      fontWeight: 800,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.06em',
+                    }}
+                  >
+                    {b}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div style={{ marginTop: 8, minHeight: 170 }}>
+              {leaderboardLoading ? (
+                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>Loading scores...</div>
+              ) : leaderboardError ? (
+                <div style={{ fontSize: 12, color: 'rgba(255,180,180,0.95)' }}>{leaderboardError}</div>
+              ) : leaderboard[leaderboardView].length === 0 ? (
+                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)' }}>No scores yet.</div>
+              ) : (
+                leaderboard[leaderboardView].map((row, idx) => (
+                  <div
+                    key={`${leaderboardView}-${row.id}-${idx}`}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '36px 1fr auto',
+                      gap: 8,
+                      alignItems: 'center',
+                      padding: '6px 2px',
+                      borderBottom:
+                        idx < leaderboard[leaderboardView].length - 1 ? '1px solid rgba(255,255,255,0.08)' : 'none',
+                      fontSize: 13,
+                    }}
+                  >
+                    <div style={{ fontWeight: 900, color: 'rgba(125,211,252,0.95)' }}>#{idx + 1}</div>
+                    <div style={{ fontWeight: 700, color: 'rgba(255,255,255,0.92)' }}>{row.name || 'Player'}</div>
+                    <div style={{ fontWeight: 800, color: 'rgba(120,255,180,0.95)' }}>{Math.round(row.score).toLocaleString('en-US')}</div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       </div>
+
+      {pendingRun && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 40,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(2,6,23,0.55)',
+            backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)',
+          }}
+        >
+          <div
+            style={{
+              width: 'min(460px, 92vw)',
+              padding: '16px',
+              borderRadius: 16,
+              border: '1px solid rgba(255,255,255,0.20)',
+              background: 'rgba(255,255,255,0.10)',
+              color: 'rgba(255,255,255,0.95)',
+              boxShadow: '0 20px 52px rgba(0,0,0,0.35)',
+            }}
+          >
+            <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              Run complete
+            </div>
+            <div style={{ marginTop: 8, fontSize: 15 }}>
+              Score: <span style={{ fontWeight: 900 }}>{Math.round(pendingRun.score).toLocaleString('en-US')}</span>
+              {' · '}
+              <span style={{ textTransform: 'capitalize' }}>{pendingRun.bucket}</span>
+            </div>
+            <div style={{ marginTop: 10, fontSize: 12, color: 'rgba(255,255,255,0.8)' }}>Enter your name for the leaderboard</div>
+            <input
+              value={playerName}
+              onChange={(e) => setPlayerName(e.target.value)}
+              maxLength={24}
+              placeholder="Your name"
+              style={{
+                marginTop: 8,
+                width: '100%',
+                borderRadius: 10,
+                border: '1px solid rgba(255,255,255,0.25)',
+                background: 'rgba(15,23,42,0.55)',
+                color: 'rgba(255,255,255,0.95)',
+                padding: '10px 12px',
+                outline: 'none',
+              }}
+            />
+            <div style={{ marginTop: 12, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setPendingRun(null)}
+                disabled={savingScore}
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: 10,
+                  border: '1px solid rgba(255,255,255,0.25)',
+                  background: 'rgba(255,255,255,0.08)',
+                  color: 'rgba(255,255,255,0.92)',
+                  fontWeight: 700,
+                  cursor: savingScore ? 'not-allowed' : 'pointer',
+                }}
+              >
+                Skip
+              </button>
+              <button
+                onClick={async () => {
+                  if (!pendingRun || savingScore) return;
+                  try {
+                    setSavingScore(true);
+                    setLeaderboardError(null);
+                    await submitScore({
+                      name: playerName || 'Player',
+                      score: pendingRun.score,
+                      bucket: pendingRun.bucket,
+                    });
+                    const rows = await fetchLeaderboardForBucket(pendingRun.bucket);
+                    setLeaderboard((prev) => ({ ...prev, [pendingRun.bucket]: rows }));
+                    setPendingRun(null);
+                  } catch (e) {
+                    setLeaderboardError(e instanceof Error ? e.message : 'Failed to save score');
+                  } finally {
+                    setSavingScore(false);
+                  }
+                }}
+                disabled={savingScore}
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: 10,
+                  border: '1px solid rgba(120,255,180,0.4)',
+                  background: 'rgba(120,255,180,0.18)',
+                  color: 'rgba(255,255,255,0.95)',
+                  fontWeight: 800,
+                  cursor: savingScore ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {savingScore ? 'Saving...' : 'Save score'}
+              </button>
+            </div>
+            {!SUPABASE_ANON_KEY && (
+              <div style={{ marginTop: 8, fontSize: 11, color: 'rgba(255,180,180,0.95)' }}>
+                Missing NEXT_PUBLIC_SUPABASE_ANON_KEY. Add it to enable leaderboard writes.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
