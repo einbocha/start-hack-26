@@ -69,27 +69,6 @@ async function supabaseFetch(path: string, init?: RequestInit) {
 async function fetchLeaderboardForBucket(bucket: DifficultyBucket): Promise<LeaderboardRow[]> {
   if (!SUPABASE_ANON_KEY) return [];
   const code = bucketToCode(bucket);
-  // Primary: lowercase `difficulty` column.
-  const byLower = await supabaseFetch(
-    `/rest/v1/${encodeURIComponent(SUPABASE_TABLE)}?select=id,name,score,difficulty&difficulty=eq.${code}&order=score.desc&limit=10`,
-  );
-  if (byLower.ok) {
-    const data: unknown = await byLower.json();
-    if (Array.isArray(data)) return data as LeaderboardRow[];
-  }
-
-  // Fallback: quoted uppercase column name "Difficulty".
-  const byUpper = await supabaseFetch(
-    `/rest/v1/${encodeURIComponent(SUPABASE_TABLE)}?select=id,name,score,Difficulty&Difficulty=eq.${code}&order=score.desc&limit=10`,
-  );
-  if (byUpper.ok) {
-    const data: unknown = await byUpper.json();
-    if (!Array.isArray(data)) return [];
-    const rows = data as Array<LeaderboardRow & { Difficulty?: number }>;
-    return rows.map((r) => ({ ...r, difficulty: r.difficulty ?? r.Difficulty }));
-  }
-
-  // Fallback: some schemas use `diff` instead.
   const byDiff = await supabaseFetch(
     `/rest/v1/${encodeURIComponent(SUPABASE_TABLE)}?select=id,name,score,diff&diff=eq.${code}&order=score.desc&limit=10`,
   );
@@ -97,38 +76,20 @@ async function fetchLeaderboardForBucket(bucket: DifficultyBucket): Promise<Lead
   const data: unknown = await byDiff.json();
   if (!Array.isArray(data)) return [];
   const rows = data as Array<LeaderboardRow & { diff?: number }>;
-  return rows.map((r) => ({ ...r, difficulty: r.difficulty ?? r.diff }));
+  return rows.map((r) => ({ ...r, difficulty: r.diff }));
 }
 
 async function submitScore(params: { name: string; score: number; bucket: DifficultyBucket }) {
   if (!SUPABASE_ANON_KEY) throw new Error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY');
   const safeName = params.name.trim().slice(0, 24) || 'Player';
   const code = bucketToCode(params.bucket);
-  // Primary: lowercase `difficulty`.
   const oneTable = await supabaseFetch(`/rest/v1/${encodeURIComponent(SUPABASE_TABLE)}`, {
-    method: 'POST',
-    headers: { Prefer: 'return=representation' },
-    body: JSON.stringify([{ name: safeName, score: Math.round(params.score), difficulty: code }]),
-  });
-  if (oneTable.ok) return;
-
-  // Fallback: quoted uppercase "Difficulty".
-  const byUpper = await supabaseFetch(`/rest/v1/${encodeURIComponent(SUPABASE_TABLE)}`, {
-    method: 'POST',
-    headers: { Prefer: 'return=representation' },
-    body: JSON.stringify([{ name: safeName, score: Math.round(params.score), Difficulty: code }]),
-  });
-  if (byUpper.ok) return;
-
-  // Fallback: some schemas use `diff` instead.
-  const byDiff = await supabaseFetch(`/rest/v1/${encodeURIComponent(SUPABASE_TABLE)}`, {
     method: 'POST',
     headers: { Prefer: 'return=representation' },
     body: JSON.stringify([{ name: safeName, score: Math.round(params.score), diff: code }]),
   });
-  if (byDiff.ok) return;
-
-  const txt = await byDiff.text();
+  if (oneTable.ok) return;
+  const txt = await oneTable.text();
   throw new Error(txt || 'Failed to submit score');
 }
 

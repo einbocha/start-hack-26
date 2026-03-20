@@ -47,6 +47,36 @@ export function AssetPanel({
   const valueOwned = asset.sharesOwned * asset.currentPrice;
   const trend = trendArrow(asset);
 
+  const cityFunDescription = (a: Asset) => {
+    const title = cityDisplayNameForAsset(a).trim();
+    switch (title) {
+      case 'Hospital':
+        return 'A caring landmark where the city gets back on its feet—fast, friendly, and trusted.';
+      case 'Factory':
+        return 'A hardworking local workshop that keeps projects moving and neighborhoods growing.';
+      case 'Retail Shop':
+        return 'A cheerful shopfront for daily finds—drop by, say hi, and take home something new.';
+      case 'Post Office':
+        return 'A friendly hub for letters and parcels—where important deliveries never miss a beat.';
+      case 'Highrise-Bar':
+        return 'A rooftop hangout with great views—meet friends, share stories, and raise a glass.';
+      case 'Bank':
+        return 'A reliable financial cornerstone for the city—calm, steady, and always prepared.';
+      case 'Arcade':
+        return 'A fun place to hang out with your friends—games, laughter, and good vibes all night.';
+      case 'Asian Groceries Store':
+        return 'A cozy marketplace for fresh finds and shared meals—perfect for quick snacks and warm treats.';
+      case 'Tech Basket':
+        return 'Your city’s tech “basket”';
+      case 'Money Movers':
+        return 'A neighborhood fund that keeps opportunities flowing—helping the city’s momentum stay strong.';
+      case 'Care Collective':
+        return 'A community-minded bundle focused on well-being—supporting people and places you care about.';
+      default:
+        return 'A lively part of the city that keeps everyday life moving.';
+    }
+  };
+
   const isProperty = asset.type === 'property';
   const panelTitle = uiMode === 'city' ? cityDisplayNameForAsset(asset) : asset.displayName;
 
@@ -69,9 +99,17 @@ export function AssetPanel({
         {trend && <div style={{ fontWeight: 900, color: trend.color }}>{trend.label}</div>}
       </div>
 
-      <div style={{ marginTop: 8, fontSize: 12, color: 'rgba(255,255,255,0.72)' }}>
-        {asset.type.toUpperCase()} • {asset.market} • {asset.sector} • {asset.symbol}
-      </div>
+      {uiMode === 'city' && !isProperty && (
+        <div style={{ marginTop: 8, fontSize: 12, color: 'rgba(255,255,255,0.80)', lineHeight: 1.35 }}>
+          {cityFunDescription(asset)}
+        </div>
+      )}
+
+      {uiMode !== 'city' && (
+        <div style={{ marginTop: 8, fontSize: 12, color: 'rgba(255,255,255,0.72)' }}>
+          {asset.type.toUpperCase()} • {asset.market} • {asset.sector} • {asset.symbol}
+        </div>
+      )}
 
       {!asset.unlocked && (
         <div style={{ marginTop: 10, fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>
@@ -92,8 +130,6 @@ export function AssetPanel({
         <div style={{ color: 'rgba(255,255,255,0.6)' }}>Value owned</div>
         <div style={{ fontWeight: 800 }}>{fmt(valueOwned)}</div>
       </div>
-
-      {/* Intentionally omit the long educational text so the popup stays compact. */}
 
       {isProperty ? (
         <>
