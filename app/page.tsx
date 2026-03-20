@@ -48,6 +48,21 @@ const publicUrl = (path: string) => {
   return path.replace(/^\/+/, '');
 };
 
+/**
+ * Some OBJ/MTL packs reference `Textures/*` paths that are missing in deployed static output.
+ * Remap those URLs to guaranteed files in `public/` so GitHub Pages does not 404.
+ */
+const remapMissingColormapUrl = (url: string): string => {
+  const normalized = url.replace(/\\/g, '/');
+  const lower = normalized.toLowerCase();
+  if (!lower.includes('/textures/')) return url;
+  if (lower.endsWith('/colormap_healthcare.png')) return publicUrl('/colormap_healthcare.png');
+  if (lower.endsWith('/colormap_technology.png')) return publicUrl('/colormap_technology.png');
+  if (lower.endsWith('/colormap_finance.png')) return publicUrl('/colormap_finance.png');
+  if (lower.endsWith('/colormap.png')) return publicUrl('/colormap_finance.png');
+  return url;
+};
+
 function difficultyToBucket(d: Difficulty): DifficultyBucket {
   return d === 'min' ? 'easy' : d === 'mid' ? 'medium' : 'hard';
 }
@@ -231,6 +246,7 @@ function mergeScreenshotDummyRows(bucket: DifficultyBucket, rows: LeaderboardRow
 
 function useObjWithMtl(opts: { obj: string; mtl: string; resourcePath: string }) {
   const materials = useLoader(MTLLoader, opts.mtl, (loader) => {
+    loader.manager.setURLModifier(remapMissingColormapUrl);
     loader.setResourcePath(opts.resourcePath);
   });
   const roadFallbackMap = useLoader(THREE.TextureLoader, publicUrl('/industrial/Textures/colormap_finance.png'));
@@ -2076,7 +2092,7 @@ export default function Home() {
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
       <Canvas
-        shadows
+        shadows="percentage"
         frameloop="always"
         camera={{ position: [9, 6, 9], fov: 60 }}
         onPointerMissed={() => {
