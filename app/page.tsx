@@ -55,11 +55,13 @@ const publicUrl = (path: string) => {
 const remapMissingColormapUrl = (url: string): string => {
   const normalized = url.replace(/\\/g, '/');
   const lower = normalized.toLowerCase();
-  if (!lower.includes('/textures/')) return url;
-  if (lower.endsWith('/colormap_healthcare.png')) return publicUrl('/colormap_healthcare.png');
-  if (lower.endsWith('/colormap_technology.png')) return publicUrl('/colormap_technology.png');
-  if (lower.endsWith('/colormap_finance.png')) return publicUrl('/colormap_finance.png');
-  if (lower.endsWith('/colormap.png')) return publicUrl('/colormap_finance.png');
+  // MTL files sometimes reference textures as `Textures/colormap_*.png` (relative),
+  // and sometimes as absolute paths that include `.../Textures/...` (deployed hosts).
+  if (!lower.includes('colormap_')) return url;
+
+  if (lower.includes('colormap_healthcare.png')) return publicUrl('/colormap_healthcare.png');
+  if (lower.includes('colormap_technology.png')) return publicUrl('/colormap_technology.png');
+  if (lower.includes('colormap_finance.png')) return publicUrl('/colormap_finance.png');
   return url;
 };
 
@@ -84,66 +86,30 @@ async function supabaseFetch(path: string, init?: RequestInit) {
 async function fetchLeaderboardForBucket(bucket: DifficultyBucket): Promise<LeaderboardRow[]> {
   if (!SUPABASE_ANON_KEY) return [];
   const code = bucketToCode(bucket);
-  // Primary: lowercase `difficulty` column.
-  const byLower = await supabaseFetch(
-    `/rest/v1/${encodeURIComponent(SUPABASE_TABLE)}?select=id,name,score,difficulty&difficulty=eq.${code}&order=score.desc&limit=10`,
-  );
-  if (byLower.ok) {
-    const data: unknown = await byLower.json();
-    if (Array.isArray(data)) return data as LeaderboardRow[];
-  }
-
-  // Fallback: quoted uppercase column name "Difficulty".
-  const byUpper = await supabaseFetch(
-    `/rest/v1/${encodeURIComponent(SUPABASE_TABLE)}?select=id,name,score,Difficulty&Difficulty=eq.${code}&order=score.desc&limit=10`,
-  );
-  if (byUpper.ok) {
-    const data: unknown = await byUpper.json();
-    if (!Array.isArray(data)) return [];
-    const rows = data as Array<LeaderboardRow & { Difficulty?: number }>;
-    return rows.map((r) => ({ ...r, difficulty: r.difficulty ?? r.Difficulty }));
-  }
-
-  // Fallback: some schemas use `diff` instead.
-  const byDiff = await supabaseFetch(
+  // Canonical schema: `diff` column (0..2).
+  const res = await supabaseFetch(
     `/rest/v1/${encodeURIComponent(SUPABASE_TABLE)}?select=id,name,score,diff&diff=eq.${code}&order=score.desc&limit=10`,
   );
-  if (!byDiff.ok) return [];
-  const data: unknown = await byDiff.json();
+  if (!res.ok) return [];
+  const data: unknown = await res.json();
   if (!Array.isArray(data)) return [];
   const rows = data as Array<LeaderboardRow & { diff?: number }>;
-  return rows.map((r) => ({ ...r, difficulty: r.difficulty ?? r.diff }));
+  return rows.map((r) => ({ ...r, difficulty: r.diff }));
 }
 
 async function submitScore(params: { name: string; score: number; bucket: DifficultyBucket }) {
   if (!SUPABASE_ANON_KEY) throw new Error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY');
   const safeName = params.name.trim().slice(0, 24) || 'Player';
   const code = bucketToCode(params.bucket);
-  // Primary: lowercase `difficulty`.
-  const oneTable = await supabaseFetch(`/rest/v1/${encodeURIComponent(SUPABASE_TABLE)}`, {
-    method: 'POST',
-    headers: { Prefer: 'return=representation' },
-    body: JSON.stringify([{ name: safeName, score: Math.round(params.score), difficulty: code }]),
-  });
-  if (oneTable.ok) return;
-
-  // Fallback: quoted uppercase "Difficulty".
-  const byUpper = await supabaseFetch(`/rest/v1/${encodeURIComponent(SUPABASE_TABLE)}`, {
-    method: 'POST',
-    headers: { Prefer: 'return=representation' },
-    body: JSON.stringify([{ name: safeName, score: Math.round(params.score), Difficulty: code }]),
-  });
-  if (byUpper.ok) return;
-
-  // Fallback: some schemas use `diff` instead.
-  const byDiff = await supabaseFetch(`/rest/v1/${encodeURIComponent(SUPABASE_TABLE)}`, {
+  // Canonical schema: `diff` column (0..2).
+  const res = await supabaseFetch(`/rest/v1/${encodeURIComponent(SUPABASE_TABLE)}`, {
     method: 'POST',
     headers: { Prefer: 'return=representation' },
     body: JSON.stringify([{ name: safeName, score: Math.round(params.score), diff: code }]),
   });
-  if (byDiff.ok) return;
+  if (res.ok) return;
 
-  const txt = await byDiff.text();
+  const txt = await res.text();
   throw new Error(txt || 'Failed to submit score');
 }
 
@@ -2147,14 +2113,7 @@ export default function Home() {
             state={state}
             onNextYear={() => dispatch({ type: 'ADVANCE_YEAR' })}
             onToggleMode={() => dispatch({ type: 'TOGGLE_UI_MODE' })}
-            onSelectAsset={(assetId) =>
-              dispatch({
-                type: 'SELECT_ASSET',
-                assetId: state.selectedAssetId === assetId ? null : assetId,
-              })
-            }
             onSellAll={(assetId, qty) => dispatch({ type: 'SELL', assetId, qty })}
-            debugSelectedBuildingFileName={debugSelectedBuildingFiles ?? undefined}
           >
             {panelOpen && selectedAsset && (
               <AssetPanel
