@@ -47,13 +47,6 @@ export function AssetPanel({
   const valueOwned = asset.sharesOwned * asset.currentPrice;
   const trend = trendArrow(asset);
 
-  const explain = {
-    volatility: 'Volatility: this price can swing up and down from year to year.',
-    etf: 'ETF: a bundle of many assets—less single-company risk.',
-    sector: 'Sector: companies grouped by industry (tech, healthcare, finance…).',
-    market: 'Market: the region where the asset mainly operates.',
-  } as const;
-
   const isProperty = asset.type === 'property';
   const panelTitle = uiMode === 'city' ? cityDisplayNameForAsset(asset) : asset.displayName;
 
@@ -100,16 +93,7 @@ export function AssetPanel({
         <div style={{ fontWeight: 800 }}>{fmt(valueOwned)}</div>
       </div>
 
-      <div style={{ marginTop: 12, fontSize: 12, color: 'rgba(255,255,255,0.78)', lineHeight: 1.4 }}>
-        {asset.description}
-      </div>
-
-      <div style={{ marginTop: 10, fontSize: 12, color: 'rgba(255,255,255,0.7)', lineHeight: 1.35 }}>
-        <div>{explain.volatility}</div>
-        {asset.type === 'etf' && <div style={{ marginTop: 6 }}>{explain.etf}</div>}
-        <div style={{ marginTop: 6 }}>{explain.sector}</div>
-        <div style={{ marginTop: 6 }}>{explain.market}</div>
-      </div>
+      {/* Intentionally omit the long educational text so the popup stays compact. */}
 
       {isProperty ? (
         <>

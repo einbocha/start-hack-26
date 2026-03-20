@@ -2,6 +2,8 @@ import { Asset, EventMode, EventSeriousness, ScriptedEvent } from './types';
 
 type RawEvent = {
   text?: unknown;
+  cityText?: unknown;
+  assetText?: unknown;
   start_year?: unknown;
   end_year?: unknown;
   mode?: unknown;
@@ -17,7 +19,8 @@ function normalize(s: string): string {
 
 function parseMode(v: unknown): EventMode {
   if (v === 'city' || v === 'stock' || v === 'both') return v;
-  return 'stock';
+  // Missing/invalid mode should not force UI switching.
+  return 'both';
 }
 
 function parseSeriousness(v: unknown): EventSeriousness {
@@ -43,13 +46,19 @@ export function normalizeEventCatalog(raw: unknown): ScriptedEvent[] {
   for (let i = 0; i < raw.length; i++) {
     const e = raw[i] as RawEvent;
     if (!e || typeof e !== 'object') continue;
-    if (typeof e.text !== 'string') continue;
+    const fallbackText = typeof e.text === 'string' ? e.text.trim() : '';
+    const cityText = typeof e.cityText === 'string' ? e.cityText.trim() : '';
+    const assetText = typeof e.assetText === 'string' ? e.assetText.trim() : '';
+    const text = fallbackText || assetText || cityText;
+    if (!text) continue;
     const startYear = Number(e.start_year);
     const endYear = Number(e.end_year);
     if (!Number.isFinite(startYear) || !Number.isFinite(endYear)) continue;
     out.push({
       id: `evt-${i}`,
-      text: e.text.trim(),
+      text,
+      cityText: cityText || undefined,
+      assetText: assetText || undefined,
       startYear,
       endYear,
       mode: parseMode(e.mode),
@@ -63,15 +72,26 @@ export function normalizeEventCatalog(raw: unknown): ScriptedEvent[] {
 }
 
 export function activeEventsForYear(catalog: ScriptedEvent[], year: number): ScriptedEvent[] {
-  // Inclusive range on both sides.
-  const active = catalog.filter((e) => year >= e.startYear && year <= e.endYear);
+  // Inclusive range on both sides for normal events.
+  // Timed events are one-shot by design: only active in their start year.
+  const active = catalog.filter((e) =>
+    e.seriousness === 'timed'
+      ? year === e.startYear
+      : year >= e.startYear && year <= e.endYear,
+  );
 
   const severe = active.filter((e) => e.seriousness === 'serious' || e.seriousness === 'timed');
   if (severe.length <= 1) return active;
 
-  // Keep exactly one severe event at a time: earliest start, then earliest end, then stable id order.
+  // Keep exactly one severe event at a time.
+  // Timed events must take precedence so auto-advance + countdown remain reliable.
+  const severityRank = (e: ScriptedEvent) => (e.seriousness === 'timed' ? 0 : 1);
   const keep = [...severe].sort(
-    (a, b) => a.startYear - b.startYear || a.endYear - b.endYear || a.id.localeCompare(b.id),
+    (a, b) =>
+      severityRank(a) - severityRank(b) ||
+      a.startYear - b.startYear ||
+      a.endYear - b.endYear ||
+      a.id.localeCompare(b.id),
   )[0];
   return active.filter((e) => (e.seriousness === 'serious' || e.seriousness === 'timed' ? e.id === keep.id : true));
 }
@@ -79,25 +99,28 @@ export function activeEventsForYear(catalog: ScriptedEvent[], year: number): Scr
 type AssetIndex = {
   byId: Map<string, Asset>;
   bySymbol: Map<string, Asset>;
-  byName: Map<string, Asset>;
 };
 
 function buildAssetIndex(assets: Record<string, Asset>): AssetIndex {
   const byId = new Map<string, Asset>();
   const bySymbol = new Map<string, Asset>();
-  const byName = new Map<string, Asset>();
   for (const a of Object.values(assets)) {
     byId.set(normalize(a.id), a);
     bySymbol.set(normalize(a.symbol), a);
-    byName.set(normalize(a.name), a);
-    byName.set(normalize(a.displayName), a);
   }
-  return { byId, bySymbol, byName };
+  return { byId, bySymbol };
 }
 
-function resolveEventAsset(index: AssetIndex, symbolOrName: string): Asset | null {
-  const key = normalize(symbolOrName);
-  const direct = index.bySymbol.get(key) ?? index.byName.get(key) ?? index.byId.get(key);
+function resolveEventAssetBySymbol(index: AssetIndex, symbol: string): Asset | null {
+  const key = normalize(symbol);
+  const direct = index.bySymbol.get(key);
+  if (direct) return direct;
+  return null;
+}
+
+function resolveLegacyEventAsset(index: AssetIndex, aliasOrId: string): Asset | null {
+  const key = normalize(aliasOrId);
+  const direct = index.byId.get(key);
   if (direct) return direct;
 
   // Backward compatibility with old ETF labels/symbols in existing events.json.
@@ -134,13 +157,22 @@ export function computeEventMultipliers(
     for (let i = 0; i < width; i++) {
       const mult = e.values[i] ?? 1;
       const symbol = e.symbols[i] ?? '';
-      const name = e.assets[i] ?? '';
-      const target = resolveEventAsset(index, symbol) ?? resolveEventAsset(index, name);
+      const assetAliasOrId = e.assets[i] ?? '';
+      // New format: target by symbol only.
+      // Fallback only when no symbol is provided: legacy ETF aliases or explicit asset ids.
+      const target =
+        (symbol ? resolveEventAssetBySymbol(index, symbol) : null) ??
+        (!symbol ? resolveLegacyEventAsset(index, assetAliasOrId) : null);
       if (!target) continue;
       multByAssetId[target.id] = (multByAssetId[target.id] ?? 1) * mult;
     }
   }
 
   return multByAssetId;
+}
+
+export function eventTextForUiMode(event: ScriptedEvent, uiMode: 'city' | 'stocks'): string {
+  if (uiMode === 'city') return event.cityText ?? event.text ?? event.assetText ?? '';
+  return event.assetText ?? event.text ?? event.cityText ?? '';
 }
 

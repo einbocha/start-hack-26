@@ -1,996 +1,1662 @@
 [
-    {
-      "text": "A market tutor message appears on the city screens: broad  diversification reduces the damage from surprises. It nudges players to  compare single stocks with baskets before the first real shocks arrive.",
-      "start_year": 2027,
-      "end_year": 2027,
-      "mode": "stock",
-      "seriousness": "info",
-      "assets": ["Global Equity ETF", "Swiss Market ETF", "Technology  ETF", "Healthcare ETF", "Bond ETF"],
-      "symbols": ["GLB-ETF", "SMI-ETF", "TECH-ETF", "HLTH-ETF", "BOND-ETF"],
-      "values": [1.01, 1.01, 1.01, 1.01, 1.01]
-    },
-    {
-      "text": "A quiet expansion takes hold. Consumers spend a bit more  freely, and the market rewards broad exposure rather than flashy bets.",
-      "start_year": 2028,
-      "end_year": 2029,
-      "mode": "stock",
-      "seriousness": "neutral",
-      "assets": ["Apple", "Novartis", "J.P. Morgan", "Global Equity ETF"],
-      "symbols": ["AAPL", "NVS", "JPM", "GLB-ETF"],
-      "values": [1.03, 1.02, 1.02, 1.02]
-    },
-    {
-      "text": "Credit growth cools and households become more cautious.  Financial names underperform as investors worry the economy is losing  momentum.",
-      "start_year": 2030,
-      "end_year": 2030,
-      "mode": "stock",
-      "seriousness": "negative",
-      "assets": ["PostFinance", "ICICI Bank", "J.P. Morgan", "Global  Equity ETF"],
-      "symbols": ["POST", "IBN", "JPM", "GLB-ETF"],
-      "values": [0.97, 0.96, 0.97, 0.99]
-    },
-    {
-      "text": "A major AI-device breakthrough arrives earlier than  expected. Platform owners and ecosystem suppliers surge as investors  price in a fresh technology cycle.",
-      "start_year": 2031,
-      "end_year": 2031,
-      "mode": "stock",
-      "seriousness": "serious",
-      "assets": ["Apple", "Logitech", "Tencent", "Technology ETF"],
-      "symbols": ["AAPL", "LOGN", "TCEHY", "TECH-ETF"],
-      "values": [1.08, 1.07, 1.06, 1.04]
-    },
-    {
-      "text": "The market digests the previous year's excitement.  Adoption continues, but valuations settle into something more realistic.",
-      "start_year": 2032,
-      "end_year": 2033,
-      "mode": "stock",
-      "seriousness": "neutral",
-      "assets": ["Apple", "Technology ETF", "Global Equity ETF"],
-      "symbols": ["AAPL", "TECH-ETF", "GLB-ETF"],
-      "values": [1.02, 1.02, 1.01]
-    },
-    {
-      "text": "Policymakers begin discussing tighter platform rules in  several jurisdictions. International tech expansion looks a little less  certain.",
-      "start_year": 2033,
-      "end_year": 2033,
-      "mode": "stock",
-      "seriousness": "negative",
-      "assets": ["Tencent", "Apple", "Technology ETF"],
-      "symbols": ["TCEHY", "AAPL", "TECH-ETF"],
-      "values": [0.96, 0.98, 0.99]
-    },
-    {
-      "text": "A coordinated cyberattack disrupts payments and settlement  systems. Traders fear a wider financial accident and sell bank exposure  aggressively.",
-      "start_year": 2034,
-      "end_year": 2034,
-      "mode": "stock",
-      "seriousness": "timed",
-      "assets": ["J.P. Morgan", "ICICI Bank", "PostFinance", "Global  Equity ETF", "Bond ETF"],
-      "symbols": ["JPM", "IBN", "POST", "GLB-ETF", "BOND-ETF"],
-      "values": [0.93, 0.92, 0.94, 0.98, 1.01]
-    },
-    {
-      "text": "Central banks respond forcefully and confidence returns  faster than expected. The recovery begins before the news flow turns  positive.",
-      "start_year": 2035,
-      "end_year": 2035,
-      "mode": "stock",
-      "seriousness": "serious",
-      "assets": ["J.P. Morgan", "PostFinance", "Apple", "Global Equity  ETF", "Bond ETF"],
-      "symbols": ["JPM", "POST", "AAPL", "GLB-ETF", "BOND-ETF"],
-      "values": [1.06, 1.05, 1.03, 1.03, 1.02]
-    },
-    {
-      "text": "A tutorial broadcast explains that ETFs usually move less  violently than single names during shocks. Players are encouraged to  compare concentration with diversification before the next cycle turns.",
-      "start_year": 2036,
-      "end_year": 2036,
-      "mode": "stock",
-      "seriousness": "info",
-      "assets": ["Technology ETF", "Healthcare ETF", "Global Equity ETF",
- "Bond ETF"],
-      "symbols": ["TECH-ETF", "HLTH-ETF", "GLB-ETF", "BOND-ETF"],
-      "values": [1.01, 1.01, 1.01, 1.01]
-    },
-    {
-      "text": "Aging populations steadily lift healthcare demand. The  move is not flashy, but durable demand supports pharma valuations year  after year.",
-      "start_year": 2037,
-      "end_year": 2038,
-      "mode": "stock",
-      "seriousness": "neutral",
-      "assets": ["Novartis", "Eli Lilly", "Healthcare ETF"],
-      "symbols": ["NVS", "LLY", "HLTH-ETF"],
-      "values": [1.03, 1.04, 1.02]
-    },
-    {
-      "text": "Trade negotiations turn sour and export-sensitive firms  lose some momentum. The setback is real, but not deep enough to break  the broader market.",
-      "start_year": 2039,
-      "end_year": 2039,
-      "mode": "stock",
-      "seriousness": "negative",
-      "assets": ["Apple", "Logitech", "Tencent", "Technology ETF"],
-      "symbols": ["AAPL", "LOGN", "TCEHY", "TECH-ETF"],
-      "values": [0.98, 0.97, 0.97, 0.99]
-    },
-    {
-      "text": "An internal fraud scandal erupts at a fast-growing bank.  The event becomes a sharp lesson in single-stock risk, and the market  reacts immediately.",
-      "start_year": 2040,
-      "end_year": 2040,
-      "mode": "stock",
-      "seriousness": "timed",
-      "assets": ["ICICI Bank", "Global Equity ETF", "Bond ETF"],
-      "symbols": ["IBN", "GLB-ETF", "BOND-ETF"],
-      "values": [0.90, 0.99, 1.01]
-    },
-    {
-      "text": "The rest of the market shrugs off the scandal and moves  back toward fundamentals. Diversified portfolios barely notice the damage.",
-      "start_year": 2041,
-      "end_year": 2041,
-      "mode": "stock",
-      "seriousness": "neutral",
-      "assets": ["Apple", "Novartis", "Global Equity ETF"],
-      "symbols": ["AAPL", "NVS", "GLB-ETF"],
-      "values": [1.02, 1.02, 1.01]
-    },
-    {
-      "text": "A fast-spreading global pandemic crushes travel, spending,  and confidence. Almost every stock weakens as recession fears dominate  decision-making.",
-      "start_year": 2042,
-      "end_year": 2043,
-      "mode": "stock",
-      "seriousness": "timed",
-      "assets": ["Apple", "Tencent", "Logitech", "Novartis", "Eli Lilly",
- "PostFinance", "J.P. Morgan", "ICICI Bank", "Swiss Market ETF", "Global  Equity ETF", "Technology ETF", "Healthcare ETF", "Bond ETF"],
-      "symbols": ["AAPL", "TCEHY", "LOGN", "NVS", "LLY", "POST", "JPM",
- "IBN", "SMI-ETF", "GLB-ETF", "TECH-ETF", "HLTH-ETF", "BOND-ETF"],
-      "values": [0.91, 0.91, 0.90, 0.96, 0.96, 0.94, 0.93, 0.92, 0.96,
- 0.96, 0.95, 0.98, 1.02]
-    },
-    {
-      "text": "When panic peaks, policy support and adaptation begin to  work. Markets start recovering long before daily life feels normal again.",
-      "start_year": 2044,
-      "end_year": 2044,
-      "mode": "stock",
-      "seriousness": "serious",
-      "assets": ["Apple", "J.P. Morgan", "PostFinance", "Global Equity  ETF", "Bond ETF"],
-      "symbols": ["AAPL", "JPM", "POST", "GLB-ETF", "BOND-ETF"],
-      "values": [1.06, 1.05, 1.05, 1.04, 1.01]
-    },
-    {
-      "text": "In the city layer, rebuilding drives a burst of contracts,  commerce, and credit demand. Local recovery becomes visible in prices  before the skyline is fully repaired.",
-      "start_year": 2045,
-      "end_year": 2046,
-      "mode": "city",
-      "seriousness": "neutral",
-      "assets": ["PostFinance", "Apple", "Swiss Market ETF"],
-      "symbols": ["POST", "AAPL", "SMI-ETF"],
-      "values": [1.03, 1.02, 1.02]
-    },
-    {
-      "text": "An energy crunch raises manufacturing costs for  electronics and squeezes hardware margins. Investors trim expectations  for device makers.",
-      "start_year": 2046,
-      "end_year": 2046,
-      "mode": "stock",
-      "seriousness": "negative",
-      "assets": ["Apple", "Logitech", "Technology ETF"],
-      "symbols": ["AAPL", "LOGN", "TECH-ETF"],
-      "values": [0.97, 0.96, 0.99]
-    },
-    {
-      "text": "A biotechnology production breakthrough makes several  treatments cheaper and more scalable. Large healthcare names jump as the  market rewrites their long-term potential.",
-      "start_year": 2047,
-      "end_year": 2047,
-      "mode": "stock",
-      "seriousness": "serious",
-      "assets": ["Eli Lilly", "Novartis", "Healthcare ETF"],
-      "symbols": ["LLY", "NVS", "HLTH-ETF"],
-      "values": [1.07, 1.05, 1.03]
-    },
-    {
-      "text": "Debt worries flare up after a string of overleveraged  firms miss payments. The concern hurts confidence but stops short of a  full crisis.",
-      "start_year": 2048,
-      "end_year": 2048,
-      "mode": "stock",
-      "seriousness": "negative",
-      "assets": ["J.P. Morgan", "PostFinance", "Bond ETF", "Global Equity  ETF"],
-      "symbols": ["JPM", "POST", "BOND-ETF", "GLB-ETF"],
-      "values": [0.97, 0.97, 1.01, 0.99]
-    },
-    {
-      "text": "A market reminder notes that selling in a panic locks in  losses, while recoveries often begin before sentiment improves. The  tutorial arrives after enough turmoil to feel earned.",
-      "start_year": 2049,
-      "end_year": 2049,
-      "mode": "stock",
-      "seriousness": "info",
-      "assets": ["Global Equity ETF", "Bond ETF", "Healthcare ETF"],
-      "symbols": ["GLB-ETF", "BOND-ETF", "HLTH-ETF"],
-      "values": [1.01, 1.01, 1.01]
-    },
-    {
-      "text": "An automated trading feedback loop triggers a sudden flash  crash. Liquidity disappears just long enough to punish slow reactions.",
-      "start_year": 2050,
-      "end_year": 2050,
-      "mode": "stock",
-      "seriousness": "timed",
-      "assets": ["Apple", "Tencent", "Logitech", "Novartis", "Eli Lilly",
- "PostFinance", "J.P. Morgan", "ICICI Bank", "Swiss Market ETF", "Global  Equity ETF", "Technology ETF", "Healthcare ETF", "Bond ETF"],
-      "symbols": ["AAPL", "TCEHY", "LOGN", "NVS", "LLY", "POST", "JPM",
- "IBN", "SMI-ETF", "GLB-ETF", "TECH-ETF", "HLTH-ETF", "BOND-ETF"],
-      "values": [0.89, 0.89, 0.88, 0.93, 0.93, 0.92, 0.91, 0.90, 0.95,
- 0.95, 0.94, 0.96, 1.01]
-    },
-    {
-      "text": "Emergency measures restore order and buyers rush back into  quality assets. The rebound is almost as shocking as the crash itself.",
-      "start_year": 2051,
-      "end_year": 2051,
-      "mode": "stock",
-      "seriousness": "serious",
-      "assets": ["Apple", "J.P. Morgan", "Novartis", "Global Equity ETF"],
-      "symbols": ["AAPL", "JPM", "NVS", "GLB-ETF"],
-      "values": [1.07, 1.05, 1.03, 1.04]
-    },
-    {
-      "text": "Digital banking adoption accelerates and formerly  underbanked customers enter formal finance. The trend is steady rather  than dramatic, but investors notice.",
-      "start_year": 2052,
-      "end_year": 2052,
-      "mode": "stock",
-      "seriousness": "neutral",
-      "assets": ["PostFinance", "ICICI Bank", "Global Equity ETF"],
-      "symbols": ["POST", "IBN", "GLB-ETF"],
-      "values": [1.02, 1.04, 1.02]
-    },
-    {
-      "text": "A privacy and data-governance crackdown dents  internet-platform sentiment. Growth remains intact, but valuations  compress.",
-      "start_year": 2053,
-      "end_year": 2053,
-      "mode": "stock",
-      "seriousness": "negative",
-      "assets": ["Tencent", "Technology ETF", "Global Equity ETF"],
-      "symbols": ["TCEHY", "TECH-ETF", "GLB-ETF"],
-      "values": [0.95, 0.99, 0.99]
-    },
-    {
-      "text": "Nothing spectacular happens, and that turns out to be good  news. Solid earnings and low drama produce a year of quiet compounding.",
-      "start_year": 2054,
-      "end_year": 2054,
-      "mode": "stock",
-      "seriousness": "neutral",
-      "assets": ["Apple", "Novartis", "J.P. Morgan", "Global Equity ETF",
- "Bond ETF"],
-      "symbols": ["AAPL", "NVS", "JPM", "GLB-ETF", "BOND-ETF"],
-      "values": [1.02, 1.02, 1.02, 1.02, 1.01]
-    },
-    {
-      "text": "A new AI-infrastructure layer transforms enterprise  software and devices at the same time. Tech leadership broadens beyond a  single company and the market reacts strongly.",
-      "start_year": 2055,
-      "end_year": 2056,
-      "mode": "stock",
-      "seriousness": "serious",
-      "assets": ["Apple", "Tencent", "Logitech", "Technology ETF",
- "Global Equity ETF"],
-      "symbols": ["AAPL", "TCEHY", "LOGN", "TECH-ETF", "GLB-ETF"],
-      "values": [1.06, 1.05, 1.05, 1.04, 1.03]
-    },
-    {
-      "text": "Antitrust cases and forced interoperability discussions  reduce some of the excitement around large platforms. The trend remains  positive, but the easy upside is gone.",
-      "start_year": 2056,
-      "end_year": 2056,
-      "mode": "stock",
-      "seriousness": "negative",
-      "assets": ["Apple", "Tencent", "Technology ETF"],
-      "symbols": ["AAPL", "TCEHY", "TECH-ETF"],
-      "values": [0.97, 0.96, 0.99]
-    },
-    {
-      "text": "A tutorial message highlights cluster risk: owning several  companies from the same sector is not true diversification. The game  hints that a basket can be safer than three similar stories.",
-      "start_year": 2057,
-      "end_year": 2057,
-      "mode": "stock",
-      "seriousness": "info",
-      "assets": ["Technology ETF", "Healthcare ETF", "Global Equity ETF"],
-      "symbols": ["TECH-ETF", "HLTH-ETF", "GLB-ETF"],
-      "values": [1.01, 1.01, 1.01]
-    },
-    {
-      "text": "A severe drought weakens regional demand and raises credit  stress in exposed areas. Emerging-market finance takes the brunt of the  concern.",
-      "start_year": 2058,
-      "end_year": 2058,
-      "mode": "city",
-      "seriousness": "negative",
-      "assets": ["ICICI Bank", "Global Equity ETF", "Bond ETF"],
-      "symbols": ["IBN", "GLB-ETF", "BOND-ETF"],
-      "values": [0.95, 0.99, 1.01]
-    },
-    {
-      "text": "Governments roll out major infrastructure programs and  commercial credit demand improves. Finance names and broad equity  baskets benefit from a more optimistic growth path.",
-      "start_year": 2059,
-      "end_year": 2060,
-      "mode": "stock",
-      "seriousness": "serious",
-      "assets": ["J.P. Morgan", "PostFinance", "ICICI Bank", "Global  Equity ETF", "Swiss Market ETF"],
-      "symbols": ["JPM", "POST", "IBN", "GLB-ETF", "SMI-ETF"],
-      "values": [1.05, 1.04, 1.05, 1.03, 1.02]
-    },
-    {
-      "text": "A wildly unpredictable orange mayor redraws zoning maps  and changes local taxes with almost no warning. The city layer becomes  chaotic, and players who react too slowly get dragged into the next  auto-step.",
-      "start_year": 2060,
-      "end_year": 2060,
-      "mode": "city",
-      "seriousness": "timed",
-      "assets": ["PostFinance", "Apple", "Swiss Market ETF"],
-      "symbols": ["POST", "AAPL", "SMI-ETF"],
-      "values": [0.94, 0.97, 0.98]
-    },
-    {
-      "text": "Businesses and residents gradually adapt to the mayor's  new rules. The panic fades, though trust in local policy remains weaker  than before.",
-      "start_year": 2061,
-      "end_year": 2061,
-      "mode": "city",
-      "seriousness": "neutral",
-      "assets": ["PostFinance", "Apple", "Swiss Market ETF"],
-      "symbols": ["POST", "AAPL", "SMI-ETF"],
-      "values": [1.03, 1.02, 1.01]
-    },
-    {
-      "text": "A new generation of intelligent assistants becomes central  to everyday workflows. Investors begin treating software ecosystems like  basic infrastructure.",
-      "start_year": 2062,
-      "end_year": 2062,
-      "mode": "stock",
-      "seriousness": "serious",
-      "assets": ["Apple", "Tencent", "Technology ETF"],
-      "symbols": ["AAPL", "TCEHY", "TECH-ETF"],
-      "values": [1.07, 1.05, 1.04]
-    },
-    {
-      "text": "Healthcare pricing reforms reduce the expected  profitability of some blockbuster treatments. The sector remains  valuable, but less untouchable.",
-      "start_year": 2063,
-      "end_year": 2063,
-      "mode": "stock",
-      "seriousness": "negative",
-      "assets": ["Novartis", "Eli Lilly", "Healthcare ETF"],
-      "symbols": ["NVS", "LLY", "HLTH-ETF"],
-      "values": [0.97, 0.96, 0.99]
-    },
-    {
-      "text": "Cross-border commerce expands and payment friction  declines. The improvement is broad enough to help both tech and finance  without turning euphoric.",
-      "start_year": 2064,
-      "end_year": 2064,
-      "mode": "stock",
-      "seriousness": "neutral",
-      "assets": ["Tencent", "Apple", "J.P. Morgan", "Global Equity ETF"],
-      "symbols": ["TCEHY", "AAPL", "JPM", "GLB-ETF"],
-      "values": [1.03, 1.02, 1.02, 1.02]
-    },
-    {
-      "text": "A security breach at a major cloud provider shakes trust  in the digital stack. Because the event unfolds quickly, waiting too  long to respond can be costly.",
-      "start_year": 2065,
-      "end_year": 2065,
-      "mode": "stock",
-      "seriousness": "timed",
-      "assets": ["Apple", "Tencent", "Logitech", "Technology ETF",
- "Global Equity ETF"],
-      "symbols": ["AAPL", "TCEHY", "LOGN", "TECH-ETF", "GLB-ETF"],
-      "values": [0.95, 0.94, 0.96, 0.98, 0.99]
-    },
-    {
-      "text": "Rate cuts arrive just as inflation pressure eases. The  macro setup becomes unusually friendly for both equities and bonds.",
-      "start_year": 2066,
-      "end_year": 2066,
-      "mode": "stock",
-      "seriousness": "serious",
-      "assets": ["Apple", "J.P. Morgan", "Novartis", "Global Equity ETF",
- "Bond ETF"],
-      "symbols": ["AAPL", "JPM", "NVS", "GLB-ETF", "BOND-ETF"],
-      "values": [1.05, 1.04, 1.02, 1.03, 1.02]
-    },
-    {
-      "text": "After a strong run, expensive names cool off. The  correction is orderly and feels more like a reset than a crisis.",
-      "start_year": 2067,
-      "end_year": 2067,
-      "mode": "stock",
-      "seriousness": "negative",
-      "assets": ["Apple", "Tencent", "Eli Lilly", "Technology ETF"],
-      "symbols": ["AAPL", "TCEHY", "LLY", "TECH-ETF"],
-      "values": [0.97, 0.97, 0.98, 0.99]
-    },
-    {
-      "text": "A city-wide disaster damages infrastructure and turns  entire blocks red. Players have only a brief window to act before the  simulation steps onward.",
-      "start_year": 2068,
-      "end_year": 2068,
-      "mode": "city",
-      "seriousness": "timed",
-      "assets": ["PostFinance", "Apple", "J.P. Morgan", "Swiss Market  ETF", "Global Equity ETF"],
-      "symbols": ["POST", "AAPL", "JPM", "SMI-ETF", "GLB-ETF"],
-      "values": [0.90, 0.95, 0.93, 0.96, 0.98]
-    },
-    {
-      "text": "Rebuilding contracts, insurance payouts, and utility  demand create a surprisingly strong rebound. The recovery rewards  players who stayed calm through the initial damage.",
-      "start_year": 2069,
-      "end_year": 2070,
-      "mode": "city",
-      "seriousness": "serious",
-      "assets": ["PostFinance", "Apple", "Logitech", "Swiss Market ETF"],
-      "symbols": ["POST", "AAPL", "LOGN", "SMI-ETF"],
-      "values": [1.06, 1.03, 1.03, 1.03]
-    },
-    {
-      "text": "A guidance event reminds players that broad exposure can  make uncertain periods easier to survive. The lesson appears right after  a crisis for maximum contrast.",
-      "start_year": 2070,
-      "end_year": 2070,
-      "mode": "stock",
-      "seriousness": "info",
-      "assets": ["Global Equity ETF", "Bond ETF", "Swiss Market ETF"],
-      "symbols": ["GLB-ETF", "BOND-ETF", "SMI-ETF"],
-      "values": [1.01, 1.01, 1.01]
-    },
-    {
-      "text": "Large banks quietly improve margins after years of  operational cleanup. The market rewards boring execution more than bold  promises.",
-      "start_year": 2071,
-      "end_year": 2071,
-      "mode": "stock",
-      "seriousness": "neutral",
-      "assets": ["J.P. Morgan", "PostFinance", "Global Equity ETF"],
-      "symbols": ["JPM", "POST", "GLB-ETF"],
-      "values": [1.03, 1.02, 1.02]
-    },
-    {
-      "text": "A consumer slowdown weakens upgrade cycles and ad  spending. Growth stocks stall while defensive names hold up better.",
-      "start_year": 2072,
-      "end_year": 2072,
-      "mode": "stock",
-      "seriousness": "negative",
-      "assets": ["Apple", "Tencent", "Technology ETF", "Healthcare ETF"],
-      "symbols": ["AAPL", "TCEHY", "TECH-ETF", "HLTH-ETF"],
-      "values": [0.98, 0.97, 0.99, 1.00]
-    },
-    {
-      "text": "A breakthrough in orbital communications sparks optimism  around the next wave of connected devices and data services. Technology  leadership rotates higher again.",
-      "start_year": 2073,
-      "end_year": 2073,
-      "mode": "stock",
-      "seriousness": "serious",
-      "assets": ["Apple", "Tencent", "Technology ETF"],
-      "symbols": ["AAPL", "TCEHY", "TECH-ETF"],
-      "values": [1.06, 1.05, 1.04]
-    },
-    {
-      "text": "Supply bottlenecks prevent firms from fully capturing  demand. Investors take back part of the previous year's optimism.",
-      "start_year": 2074,
-      "end_year": 2074,
-      "mode": "stock",
-      "seriousness": "negative",
-      "assets": ["Apple", "Logitech", "Technology ETF"],
-      "symbols": ["AAPL", "LOGN", "TECH-ETF"],
-      "values": [0.97, 0.96, 0.99]
-    },
-    {
-      "text": "A high-profile CEO fraud scandal breaks without warning.  The story moves too quickly to ignore, and concentrated holders are hit  hardest.",
-      "start_year": 2075,
-      "end_year": 2075,
-      "mode": "stock",
-      "seriousness": "timed",
-      "assets": ["J.P. Morgan", "Global Equity ETF", "Bond ETF"],
-      "symbols": ["JPM", "GLB-ETF", "BOND-ETF"],
-      "values": [0.91, 0.99, 1.01]
-    },
-    {
-      "text": "Confidence stabilizes and the rest of the market returns  to normal. The scandal reinforces the difference between a company and a  diversified portfolio.",
-      "start_year": 2076,
-      "end_year": 2076,
-      "mode": "stock",
-      "seriousness": "neutral",
-      "assets": ["Apple", "Novartis", "Global Equity ETF"],
-      "symbols": ["AAPL", "NVS", "GLB-ETF"],
-      "values": [1.02, 1.02, 1.01]
-    },
-    {
-      "text": "Diagnostic AI materially shortens drug-development  timelines. Healthcare stops being merely defensive and becomes one of  the market's leaders.",
-      "start_year": 2077,
-      "end_year": 2078,
-      "mode": "stock",
-      "seriousness": "serious",
-      "assets": ["Novartis", "Eli Lilly", "Healthcare ETF"],
-      "symbols": ["NVS", "LLY", "HLTH-ETF"],
-      "values": [1.05, 1.06, 1.03]
-    },
-    {
-      "text": "A sanitation scandal at a major retail district briefly  damages consumer sentiment in the city layer. The problem is unpleasant,  but not system-wide.",
-      "start_year": 2078,
-      "end_year": 2078,
-      "mode": "city",
-      "seriousness": "negative",
-      "assets": ["Apple", "PostFinance", "Swiss Market ETF"],
-      "symbols": ["AAPL", "POST", "SMI-ETF"],
-      "values": [0.97, 0.97, 0.99]
-    },
-    {
-      "text": "Shoppers return and the city normalizes faster than  expected. The earlier panic ends up looking excessive in hindsight.",
-      "start_year": 2079,
-      "end_year": 2079,
-      "mode": "city",
-      "seriousness": "neutral",
-      "assets": ["Apple", "PostFinance", "Swiss Market ETF"],
-      "symbols": ["AAPL", "POST", "SMI-ETF"],
-      "values": [1.02, 1.02, 1.01]
-    },
-    {
-      "text": "A boring expansion year delivers exactly what long-term  investors wanted: calm compounding and few surprises.",
-      "start_year": 2080,
-      "end_year": 2080,
-      "mode": "stock",
-      "seriousness": "neutral",
-      "assets": ["Apple", "Novartis", "J.P. Morgan", "Global Equity ETF",
- "Bond ETF"],
-      "symbols": ["AAPL", "NVS", "JPM", "GLB-ETF", "BOND-ETF"],
-      "values": [1.02, 1.02, 1.02, 1.02, 1.01]
-    },
-    {
-      "text": "A therapy platform proves commercially stronger than  expected. Healthcare enjoys a second wave of enthusiasm on top of solid  fundamentals.",
-      "start_year": 2081,
-      "end_year": 2081,
-      "mode": "stock",
-      "seriousness": "serious",
-      "assets": ["Eli Lilly", "Novartis", "Healthcare ETF"],
-      "symbols": ["LLY", "NVS", "HLTH-ETF"],
-      "values": [1.06, 1.04, 1.03]
-    },
-    {
-      "text": "The market cools after getting a little too comfortable.  Valuations stop expanding even though earnings remain acceptable.",
-      "start_year": 2082,
-      "end_year": 2082,
-      "mode": "stock",
-      "seriousness": "negative",
-      "assets": ["Apple", "Tencent", "Global Equity ETF"],
-      "symbols": ["AAPL", "TCEHY", "GLB-ETF"],
-      "values": [0.98, 0.98, 0.99]
-    },
-    {
-      "text": "A tutorial banner reminds players that time in the market  often beats trying to guess every twist. It appears after enough  reversals to make the point sting a little.",
-      "start_year": 2083,
-      "end_year": 2083,
-      "mode": "stock",
-      "seriousness": "info",
-      "assets": ["Global Equity ETF", "Bond ETF", "Swiss Market ETF"],
-      "symbols": ["GLB-ETF", "BOND-ETF", "SMI-ETF"],
-      "values": [1.01, 1.01, 1.01]
-    },
-    {
-      "text": "The financial system proves resilient and risk premiums  narrow. A patient, diversified approach keeps working.",
-      "start_year": 2084,
-      "end_year": 2085,
-      "mode": "stock",
-      "seriousness": "neutral",
-      "assets": ["PostFinance", "J.P. Morgan", "Novartis", "Swiss Market  ETF", "Bond ETF"],
-      "symbols": ["POST", "JPM", "NVS", "SMI-ETF", "BOND-ETF"],
-      "values": [1.02, 1.03, 1.02, 1.02, 1.01]
-    },
-    {
-      "text": "A year of exceptionally pleasant weather boosts tourism  and premium urban demand. In the city layer, skyline-linked assets feel  strangely buoyant.",
-      "start_year": 2085,
-      "end_year": 2085,
-      "mode": "city",
-      "seriousness": "neutral",
-      "assets": ["Apple", "Logitech", "Swiss Market ETF"],
-      "symbols": ["AAPL", "LOGN", "SMI-ETF"],
-      "values": [1.02, 1.03, 1.01]
-    },
-    {
-      "text": "A massive AI productivity leap hits faster than most  forecasts allowed. Tech re-rates sharply as investors price in a new  economic regime.",
-      "start_year": 2086,
-      "end_year": 2087,
-      "mode": "stock",
-      "seriousness": "serious",
-      "assets": ["Apple", "Tencent", "Logitech", "Technology ETF",
- "Global Equity ETF"],
-      "symbols": ["AAPL", "TCEHY", "LOGN", "TECH-ETF", "GLB-ETF"],
-      "values": [1.08, 1.07, 1.07, 1.05, 1.03]
-    },
-    {
-      "text": "Regulators respond with new oversight proposals and  platform restrictions. The story remains bullish overall, but the path  gets bumpier.",
-      "start_year": 2087,
-      "end_year": 2087,
-      "mode": "stock",
-      "seriousness": "negative",
-      "assets": ["Apple", "Tencent", "Technology ETF"],
-      "symbols": ["AAPL", "TCEHY", "TECH-ETF"],
-      "values": [0.97, 0.96, 0.99]
-    },
-    {
-      "text": "A quieter year follows the excitement. Companies execute,  investors breathe, and the market spends time digesting large gains.",
-      "start_year": 2088,
-      "end_year": 2088,
-      "mode": "stock",
-      "seriousness": "neutral",
-      "assets": ["Apple", "Novartis", "Global Equity ETF"],
-      "symbols": ["AAPL", "NVS", "GLB-ETF"],
-      "values": [1.02, 1.02, 1.01]
-    },
-    {
-      "text": "After years of complacency, a global recession finally  arrives. This is the kind of shock that punishes hesitation because the  game is willing to march onward while players are still staring at the  damage.",
-      "start_year": 2089,
-      "end_year": 2089,
-      "mode": "stock",
-      "seriousness": "timed",
-      "assets": ["Apple", "Tencent", "Logitech", "Novartis", "Eli Lilly",
- "PostFinance", "J.P. Morgan", "ICICI Bank", "Swiss Market ETF", "Global  Equity ETF", "Technology ETF", "Healthcare ETF", "Bond ETF"],
-      "symbols": ["AAPL", "TCEHY", "LOGN", "NVS", "LLY", "POST", "JPM",
- "IBN", "SMI-ETF", "GLB-ETF", "TECH-ETF", "HLTH-ETF", "BOND-ETF"],
-      "values": [0.92, 0.92, 0.91, 0.96, 0.96, 0.94, 0.93, 0.92, 0.96,
- 0.97, 0.95, 0.98, 1.02]
-    },
-    {
-      "text": "Policy support and lower rates prevent a deeper collapse.  Markets stabilize and then recover before the economy feels comfortable  again.",
-      "start_year": 2090,
-      "end_year": 2091,
-      "mode": "stock",
-      "seriousness": "serious",
-      "assets": ["Apple", "J.P. Morgan", "ICICI Bank", "PostFinance",
- "Global Equity ETF", "Bond ETF"],
-      "symbols": ["AAPL", "JPM", "IBN", "POST", "GLB-ETF", "BOND-ETF"],
-      "values": [1.05, 1.04, 1.05, 1.04, 1.03, 1.02]
-    },
-    {
-      "text": "A guidance event points out that bonds often behave  differently from stocks in crises. The note is simple, but it lands  harder after a recession year.",
-      "start_year": 2092,
-      "end_year": 2092,
-      "mode": "stock",
-      "seriousness": "info",
-      "assets": ["Bond ETF", "Global Equity ETF", "Healthcare ETF"],
-      "symbols": ["BOND-ETF", "GLB-ETF", "HLTH-ETF"],
-      "values": [1.01, 1.01, 1.01]
-    },
-    {
-      "text": "The market enters a moderate-growth phase with fewer  headline shocks. Returns are not dramatic, but they add up.",
-      "start_year": 2093,
-      "end_year": 2094,
-      "mode": "stock",
-      "seriousness": "neutral",
-      "assets": ["Apple", "Novartis", "J.P. Morgan", "Global Equity ETF"],
-      "symbols": ["AAPL", "NVS", "JPM", "GLB-ETF"],
-      "values": [1.02, 1.02, 1.02, 1.02]
-    },
-    {
-      "text": "Healthcare reaches a new efficiency plateau as diagnostics  and manufacturing improve together. The sector earns another valuation  step up.",
-      "start_year": 2094,
-      "end_year": 2094,
-      "mode": "stock",
-      "seriousness": "serious",
-      "assets": ["Novartis", "Eli Lilly", "Healthcare ETF"],
-      "symbols": ["NVS", "LLY", "HLTH-ETF"],
-      "values": [1.05, 1.05, 1.03]
-    },
-    {
-      "text": "A short-lived currency shock rattles internationally  exposed businesses. The damage is manageable, but concentrated positions  feel it.",
-      "start_year": 2095,
-      "end_year": 2095,
-      "mode": "stock",
-      "seriousness": "negative",
-      "assets": ["Tencent", "ICICI Bank", "Apple", "Global Equity ETF"],
-      "symbols": ["TCEHY", "IBN", "AAPL", "GLB-ETF"],
-      "values": [0.97, 0.96, 0.98, 0.99]
-    },
-    {
-      "text": "Capital rotates back into quality assets once the currency  panic fades. Recovery is steady and broad-based.",
-      "start_year": 2096,
-      "end_year": 2096,
-      "mode": "stock",
-      "seriousness": "neutral",
-      "assets": ["Novartis", "Apple", "J.P. Morgan", "Global Equity ETF"],
-      "symbols": ["NVS", "AAPL", "JPM", "GLB-ETF"],
-      "values": [1.02, 1.03, 1.02, 1.02]
-    },
-    {
-      "text": "A charismatic outsider wins office and begins making  erratic economic announcements. The market becomes difficult to read and  players have limited time to respond before the next year arrives.",
-      "start_year": 2097,
-      "end_year": 2097,
-      "mode": "stock",
-      "seriousness": "timed",
-      "assets": ["Tencent", "J.P. Morgan", "ICICI Bank", "Global Equity  ETF"],
-      "symbols": ["TCEHY", "JPM", "IBN", "GLB-ETF"],
-      "values": [0.95, 0.97, 0.96, 0.99]
-    },
-    {
-      "text": "Investors realize the rhetoric is louder than the final  policy. Relief sets in and quality names recover some lost ground.",
-      "start_year": 2098,
-      "end_year": 2098,
-      "mode": "stock",
-      "seriousness": "serious",
-      "assets": ["Tencent", "J.P. Morgan", "Apple", "Global Equity ETF"],
-      "symbols": ["TCEHY", "JPM", "AAPL", "GLB-ETF"],
-      "values": [1.05, 1.03, 1.03, 1.02]
-    },
-    {
-      "text": "A calmer post-election year lets fundamentals matter  again. Markets move from politics back to earnings.",
-      "start_year": 2099,
-      "end_year": 2099,
-      "mode": "stock",
-      "seriousness": "neutral",
-      "assets": ["Apple", "Novartis", "PostFinance", "Swiss Market ETF"],
-      "symbols": ["AAPL", "NVS", "POST", "SMI-ETF"],
-      "values": [1.02, 1.02, 1.02, 1.01]
-    },
-    {
-      "text": "Another large AI productivity jump reshapes expectations  for the whole economy. This time the enthusiasm is broader and reaches  beyond obvious tech winners.",
-      "start_year": 2100,
-      "end_year": 2101,
-      "mode": "stock",
-      "seriousness": "serious",
-      "assets": ["Apple", "Tencent", "Logitech", "Technology ETF",
- "Global Equity ETF"],
-      "symbols": ["AAPL", "TCEHY", "LOGN", "TECH-ETF", "GLB-ETF"],
-      "values": [1.07, 1.06, 1.06, 1.04, 1.03]
-    },
-    {
-      "text": "Monetization lags the hype and some investors lose  patience. The story remains powerful, but the market pauses to ask  harder questions.",
-      "start_year": 2101,
-      "end_year": 2101,
-      "mode": "stock",
-      "seriousness": "negative",
-      "assets": ["Apple", "Technology ETF", "Global Equity ETF"],
-      "symbols": ["AAPL", "TECH-ETF", "GLB-ETF"],
-      "values": [0.97, 0.99, 0.99]
-    },
-    {
-      "text": "Companies adapt and productivity gains begin showing up in  normal earnings reports. What looked speculative starts looking  operational.",
-      "start_year": 2102,
-      "end_year": 2102,
-      "mode": "stock",
-      "seriousness": "neutral",
-      "assets": ["Apple", "J.P. Morgan", "Global Equity ETF"],
-      "symbols": ["AAPL", "JPM", "GLB-ETF"],
-      "values": [1.03, 1.02, 1.02]
-    },
-    {
-      "text": "Healthcare firms begin using AI-assisted research at  scale. Drug pipelines improve enough to justify another step upward in  valuation.",
-      "start_year": 2103,
-      "end_year": 2103,
-      "mode": "stock",
-      "seriousness": "serious",
-      "assets": ["Novartis", "Eli Lilly", "Healthcare ETF"],
-      "symbols": ["NVS", "LLY", "HLTH-ETF"],
-      "values": [1.04, 1.05, 1.03]
-    },
-    {
-      "text": "Public anger over inequality leads to fresh taxes and  tighter oversight of dominant firms. Investors digest a more regulated  landscape.",
-      "start_year": 2104,
-      "end_year": 2104,
-      "mode": "stock",
-      "seriousness": "negative",
-      "assets": ["Apple", "Tencent", "J.P. Morgan", "Global Equity ETF"],
-      "symbols": ["AAPL", "TCEHY", "JPM", "GLB-ETF"],
-      "values": [0.97, 0.96, 0.98, 0.99]
-    },
-    {
-      "text": "The new rules settle into place and markets adjust. The  worst fears fade, leaving a calmer but still functional environment.",
-      "start_year": 2105,
-      "end_year": 2105,
-      "mode": "stock",
-      "seriousness": "neutral",
-      "assets": ["Apple", "Novartis", "PostFinance", "Swiss Market ETF"],
-      "symbols": ["AAPL", "NVS", "POST", "SMI-ETF"],
-      "values": [1.02, 1.02, 1.02, 1.01]
-    },
-    {
-      "text": "The orange mayor returns with another burst of arbitrary  zoning changes. Local players have to react quickly because the  simulation will not wait for long explanations.",
-      "start_year": 2106,
-      "end_year": 2106,
-      "mode": "city",
-      "seriousness": "timed",
-      "assets": ["PostFinance", "Apple", "Swiss Market ETF"],
-      "symbols": ["POST", "AAPL", "SMI-ETF"],
-      "values": [0.95, 0.97, 0.98]
-    },
-    {
-      "text": "Residents adapt again and local commerce finds a new  equilibrium. The city proves more resilient than the mayor is stable.",
-      "start_year": 2107,
-      "end_year": 2107,
-      "mode": "city",
-      "seriousness": "serious",
-      "assets": ["PostFinance", "Apple", "Swiss Market ETF"],
-      "symbols": ["POST", "AAPL", "SMI-ETF"],
-      "values": [1.05, 1.03, 1.02]
-    },
-    {
-      "text": "The broader market returns to balanced growth and lower  drama. Quiet years start to matter more than thrilling ones.",
-      "start_year": 2108,
-      "end_year": 2109,
-      "mode": "stock",
-      "seriousness": "neutral",
-      "assets": ["Apple", "Novartis", "J.P. Morgan", "Global Equity ETF",
- "Bond ETF"],
-      "symbols": ["AAPL", "NVS", "JPM", "GLB-ETF", "BOND-ETF"],
-      "values": [1.02, 1.02, 1.02, 1.02, 1.01]
-    },
-    {
-      "text": "Payment systems become more efficient and cross-border  friction falls. Banks benefit quietly from improvements most users  barely notice.",
-      "start_year": 2109,
-      "end_year": 2109,
-      "mode": "stock",
-      "seriousness": "neutral",
-      "assets": ["J.P. Morgan", "ICICI Bank", "PostFinance", "Global  Equity ETF"],
-      "symbols": ["JPM", "IBN", "POST", "GLB-ETF"],
-      "values": [1.03, 1.03, 1.02, 1.02]
-    },
-    {
-      "text": "A well-telegraphed slowdown arrives, but it never becomes  a crisis. Investors rotate instead of panicking.",
-      "start_year": 2110,
-      "end_year": 2110,
-      "mode": "stock",
-      "seriousness": "negative",
-      "assets": ["Apple", "Tencent", "Logitech", "Technology ETF",
- "Healthcare ETF"],
-      "symbols": ["AAPL", "TCEHY", "LOGN", "TECH-ETF", "HLTH-ETF"],
-      "values": [0.98, 0.98, 0.97, 0.99, 1.00]
-    },
-    {
-      "text": "A tutorial notes that patience often beats constant  trading. It appears in a relatively mild period, when players are most  tempted to overdo small decisions.",
-      "start_year": 2111,
-      "end_year": 2111,
-      "mode": "stock",
-      "seriousness": "info",
-      "assets": ["Global Equity ETF", "Bond ETF", "Healthcare ETF"],
-      "symbols": ["GLB-ETF", "BOND-ETF", "HLTH-ETF"],
-      "values": [1.01, 1.01, 1.01]
-    },
-    {
-      "text": "Quality companies execute well and there are few  surprises. In a mature game economy, boring starts looking beautiful.",
-      "start_year": 2112,
-      "end_year": 2113,
-      "mode": "stock",
-      "seriousness": "neutral",
-      "assets": ["Eli Lilly", "PostFinance", "J.P. Morgan", "Global  Equity ETF"],
-      "symbols": ["LLY", "POST", "JPM", "GLB-ETF"],
-      "values": [1.03, 1.02, 1.02, 1.02]
-    },
-    {
-      "text": "An inventory correction hits device makers for a year. It  is unpleasant, but not important enough to change the decade's story.",
-      "start_year": 2113,
-      "end_year": 2113,
-      "mode": "stock",
-      "seriousness": "negative",
-      "assets": ["Apple", "Logitech", "Technology ETF"],
-      "symbols": ["AAPL", "LOGN", "TECH-ETF"],
-      "values": [0.98, 0.97, 0.99]
-    },
-    {
-      "text": "Healthcare reaches another efficiency plateau as  diagnostics and production both get better at once. The sector earns a  fresh round of respect.",
-      "start_year": 2114,
-      "end_year": 2115,
-      "mode": "stock",
-      "seriousness": "serious",
-      "assets": ["Novartis", "Eli Lilly", "Healthcare ETF"],
-      "symbols": ["NVS", "LLY", "HLTH-ETF"],
-      "values": [1.04, 1.04, 1.03]
-    },
-    {
-      "text": "Markets gradually appreciate the durability of those  gains. Nothing flashy happens, which helps more than it hurts.",
-      "start_year": 2115,
-      "end_year": 2116,
-      "mode": "stock",
-      "seriousness": "neutral",
-      "assets": ["Novartis", "Apple", "Swiss Market ETF", "Bond ETF"],
-      "symbols": ["NVS", "AAPL", "SMI-ETF", "BOND-ETF"],
-      "values": [1.02, 1.02, 1.01, 1.01]
-    },
-    {
-      "text": "A shallow global expansion lifts diversified portfolios.  Concentrated bets only win if they happened to be right in the right  niche.",
-      "start_year": 2116,
-      "end_year": 2116,
-      "mode": "stock",
-      "seriousness": "neutral",
-      "assets": ["Apple", "Tencent", "J.P. Morgan", "Novartis", "Global  Equity ETF"],
-      "symbols": ["AAPL", "TCEHY", "JPM", "NVS", "GLB-ETF"],
-      "values": [1.03, 1.03, 1.02, 1.02, 1.02]
-    },
-    {
-      "text": "A soft patch cools the market after several healthy years.  The dip is real, but still far from a panic.",
-      "start_year": 2117,
-      "end_year": 2117,
-      "mode": "stock",
-      "seriousness": "negative",
-      "assets": ["Apple", "Tencent", "ICICI Bank", "Global Equity ETF"],
-      "symbols": ["AAPL", "TCEHY", "IBN", "GLB-ETF"],
-      "values": [0.98, 0.98, 0.97, 0.99]
-    },
-    {
-      "text": "A cyber-fraud scandal hits a major platform and spreads  through headlines rapidly. The event is severe and time-sensitive  because it unfolds faster than normal annual drift.",
-      "start_year": 2118,
-      "end_year": 2118,
-      "mode": "stock",
-      "seriousness": "timed",
-      "assets": ["Tencent", "Technology ETF", "Global Equity ETF"],
-      "symbols": ["TCEHY", "TECH-ETF", "GLB-ETF"],
-      "values": [0.92, 0.98, 0.99]
-    },
-    {
-      "text": "The rest of the market remains resilient and diversified  investors barely flinch. The lesson on single-stock fragility becomes  impossible to miss.",
-      "start_year": 2119,
-      "end_year": 2119,
-      "mode": "stock",
-      "seriousness": "neutral",
-      "assets": ["Novartis", "Apple", "J.P. Morgan", "Global Equity ETF",
- "Bond ETF"],
-      "symbols": ["NVS", "AAPL", "JPM", "GLB-ETF", "BOND-ETF"],
-      "values": [1.02, 1.02, 1.02, 1.01, 1.01]
-    },
-    {
-      "text": "A long stretch of stability begins to define the late  game. Returns are modest, drawdowns are rarer, and patience starts to  dominate skill expression.",
-      "start_year": 2120,
-      "end_year": 2120,
-      "mode": "stock",
-      "seriousness": "neutral",
-      "assets": ["Apple", "Novartis", "PostFinance", "Global Equity ETF",
- "Bond ETF"],
-      "symbols": ["AAPL", "NVS", "POST", "GLB-ETF", "BOND-ETF"],
-      "values": [1.02, 1.02, 1.02, 1.02, 1.01]
-    },
-    {
-      "text": "Incremental innovation in medical manufacturing improves  margins again. Healthcare continues doing what it does best: compounding  quietly until everyone notices.",
-      "start_year": 2121,
-      "end_year": 2121,
-      "mode": "stock",
-      "seriousness": "serious",
-      "assets": ["Novartis", "Eli Lilly", "Healthcare ETF"],
-      "symbols": ["NVS", "LLY", "HLTH-ETF"],
-      "values": [1.04, 1.04, 1.03]
-    },
-    {
-      "text": "Finance firms benefit from years of digital cleanup and  more efficient capital allocation. It is not exciting, but it works.",
-      "start_year": 2122,
-      "end_year": 2122,
-      "mode": "stock",
-      "seriousness": "neutral",
-      "assets": ["J.P. Morgan", "PostFinance", "ICICI Bank", "Global  Equity ETF"],
-      "symbols": ["JPM", "POST", "IBN", "GLB-ETF"],
-      "values": [1.03, 1.02, 1.03, 1.02]
-    },
-    {
-      "text": "A mild regulatory review hits the tech sector, but the  measures are softer than feared. Markets wobble and then largely move on.",
-      "start_year": 2123,
-      "end_year": 2123,
-      "mode": "stock",
-      "seriousness": "negative",
-      "assets": ["Apple", "Tencent", "Logitech", "Technology ETF"],
-      "symbols": ["AAPL", "TCEHY", "LOGN", "TECH-ETF"],
-      "values": [0.99, 0.98, 0.99, 0.995]
-    },
-    {
-      "text": "A final tutorial note reminds players that calm years are  where portfolios are really built. It is a quiet message for a quiet era.",
-      "start_year": 2124,
-      "end_year": 2124,
-      "mode": "stock",
-      "seriousness": "info",
-      "assets": ["Global Equity ETF", "Bond ETF", "Swiss Market ETF"],
-      "symbols": ["GLB-ETF", "BOND-ETF", "SMI-ETF"],
-      "values": [1.01, 1.01, 1.01]
-    },
-    {
-      "text": "A pleasant weather cycle lifts city mood and spending activity again. The effect is modest, but visible in local-facing assets.",
-      "start_year": 2125,
-      "end_year": 2125,
-      "mode": "city",
-      "seriousness": "neutral",
-      "assets": ["Apple", "PostFinance", "Swiss Market ETF"],
-      "symbols": ["AAPL", "POST", "SMI-ETF"],
-      "values": [1.02, 1.02, 1.01]
-    },
-    {
-      "text": "An otherwise average year reinforces the same lesson as  before: broad exposure wins quietly while impatient timing usually  disappoints.",
-      "start_year": 2126,
-      "end_year": 2126,
-      "mode": "stock",
-      "seriousness": "neutral",
-      "assets": ["Apple", "Novartis", "J.P. Morgan", "ICICI Bank",
- "Global Equity ETF", "Bond ETF"],
-      "symbols": ["AAPL", "NVS", "JPM", "IBN", "GLB-ETF", "BOND-ETF"],
-      "values": [1.02, 1.02, 1.02, 1.02, 1.02, 1.01]
-    },
-    {
-      "text": "The timeline closes in a calm, stable expansion. Nothing  spectacular happens, and long-term investors finish stronger for it.",
-      "start_year": 2127,
-      "end_year": 2127,
-      "mode": "stock",
-      "seriousness": "neutral",
-      "assets": ["Apple", "Novartis", "Eli Lilly", "PostFinance", "Global  Equity ETF", "Bond ETF"],
-      "symbols": ["AAPL", "NVS", "LLY", "POST", "GLB-ETF", "BOND-ETF"],
-      "values": [1.02, 1.02, 1.02, 1.02, 1.02, 1.01]
-    }
- ]
- 
+  {
+    "cityText": "A mysterious illness breaks out in the Hospital district. Quarantine protocols shut down nearby streets.",
+    "assetText": "A new infectious disease outbreak sparks fears of a repeat pandemic. Healthcare and market stocks dip.",
+    "seriousness": "timed",
+    "symbols": [
+      "SPY",
+      "XLV",
+      "NVS",
+      "PFE"
+    ],
+    "values": [
+      0.88,
+      1.05,
+      1.08,
+      1.06
+    ],
+    "start_year": 2027,
+    "end_year": 2030
+  },
+  {
+    "cityText": "The Factory is hit by a major labor strike. Production halts for weeks.",
+    "assetText": "Pfizer faces a manufacturing shutdown due to worker strikes. Supply chains are disrupted.",
+    "seriousness": "negative",
+    "symbols": [
+      "PFE"
+    ],
+    "values": [
+      0.87
+    ],
+    "start_year": 2028,
+    "end_year": 2028
+  },
+  {
+    "cityText": "A health inspector finds rats in the Highrise-Bar kitchen. Customers flee and revenue crashes.",
+    "assetText": "Apple faces a major product recall scandal. Consumer trust plummets and the stock sells off sharply.",
+    "seriousness": "negative",
+    "symbols": [
+      "AAPL"
+    ],
+    "values": [
+      0.85
+    ],
+    "start_year": 2031,
+    "end_year": 2031
+  },
+  {
+    "cityText": "A massive flood hits the lower city. The Post Office and Factory districts are underwater.",
+    "assetText": "Natural disasters disrupt logistics and manufacturing. Insurance claims spike and stocks dip.",
+    "seriousness": "negative",
+    "symbols": [
+      "POST",
+      "PFE",
+      "SPY"
+    ],
+    "values": [
+      0.84,
+      0.87,
+      0.93
+    ],
+    "start_year": 2031,
+    "end_year": 2031
+  },
+  {
+    "cityText": "A new city energy tax hikes operating costs for factories and hospitals across the district.",
+    "assetText": "New carbon taxes raise operating costs for industrial and pharma firms. Margins compress.",
+    "seriousness": "negative",
+    "symbols": [
+      "PFE",
+      "NVS",
+      "XLV"
+    ],
+    "values": [
+      0.9,
+      0.91,
+      0.93
+    ],
+    "start_year": 2032,
+    "end_year": 2032
+  },
+  {
+    "cityText": "The city hosts a world expo. Tourism explodes and every business in the city profits.",
+    "assetText": "A global economic summit boosts investor confidence. Broad market rally lifts all assets.",
+    "seriousness": "neutral",
+    "symbols": [
+      "SPY",
+      "EWL",
+      "EEM",
+      "AAPL"
+    ],
+    "values": [
+      1.1,
+      1.12,
+      1.09,
+      1.08
+    ],
+    "start_year": 2033,
+    "end_year": 2033
+  },
+  {
+    "cityText": "The ICICI Bank branch opens a new microfinance program, bringing in thousands of new customers.",
+    "assetText": "ICICI Bank beats earnings estimates after strong growth in digital banking subscriptions.",
+    "seriousness": "neutral",
+    "symbols": [
+      "IBN",
+      "EEM"
+    ],
+    "values": [
+      1.13,
+      1.05
+    ],
+    "start_year": 2034,
+    "end_year": 2034
+  },
+  {
+    "cityText": "The city's population hits a milestone, driving massive demand for housing and services.",
+    "assetText": "Strong demographic data boosts consumer and financial stocks on improved long-term growth outlook.",
+    "seriousness": "neutral",
+    "symbols": [
+      "SPY",
+      "JPM",
+      "XLF",
+      "POST"
+    ],
+    "values": [
+      1.06,
+      1.08,
+      1.07,
+      1.05
+    ],
+    "start_year": 2034,
+    "end_year": 2034
+  },
+  {
+    "cityText": "The city's financial quarter celebrates record bonuses as interest rates rise sharply.",
+    "assetText": "The Federal Reserve raises interest rates aggressively. Bank stocks soar on higher margins.",
+    "seriousness": "neutral",
+    "symbols": [
+      "JPM",
+      "XLF"
+    ],
+    "values": [
+      1.16,
+      1.12
+    ],
+    "start_year": 2035,
+    "end_year": 2035
+  },
+  {
+    "cityText": "The Post Office launches a same-day drone delivery service. The city buzzes with excitement.",
+    "assetText": "PostFinance integrates a leading fintech platform, attracting a wave of new customers.",
+    "seriousness": "neutral",
+    "symbols": [
+      "POST"
+    ],
+    "values": [
+      1.12
+    ],
+    "start_year": 2035,
+    "end_year": 2035
+  },
+  {
+    "cityText": "A citywide blackout lasts for three days. Every business loses revenue and data.",
+    "assetText": "A large-scale power grid failure disrupts corporate operations worldwide. Tech and finance stocks fall.",
+    "seriousness": "serious",
+    "symbols": [
+      "AAPL",
+      "JPM",
+      "QQQ",
+      "XLF"
+    ],
+    "values": [
+      0.87,
+      0.85,
+      0.88,
+      0.86
+    ],
+    "start_year": 2036,
+    "end_year": 2037
+  },
+  {
+    "cityText": "The city's central bank cuts interest rates to zero. Loans are cheap and businesses invest aggressively.",
+    "assetText": "The central bank cuts rates to zero. Growth stocks and tech rally as borrowing becomes nearly free.",
+    "seriousness": "neutral",
+    "symbols": [
+      "QQQ",
+      "AAPL",
+      "TCEHY",
+      "SPY"
+    ],
+    "values": [
+      1.15,
+      1.12,
+      1.1,
+      1.08
+    ],
+    "start_year": 2036,
+    "end_year": 2036
+  },
+  {
+    "cityText": "The Factory lands a massive government defense contract, running three shifts a day.",
+    "assetText": "Pfizer wins a multi-billion dollar government vaccine supply contract.",
+    "seriousness": "neutral",
+    "symbols": [
+      "PFE"
+    ],
+    "values": [
+      1.15
+    ],
+    "start_year": 2038,
+    "end_year": 2038
+  },
+  {
+    "cityText": "The Retail Shop is flooded after a burst pipe. Inventory is destroyed.",
+    "assetText": "Logitech suffers a major warehouse fire, destroying key inventory ahead of the holiday season.",
+    "seriousness": "negative",
+    "symbols": [
+      "LOGI"
+    ],
+    "values": [
+      0.88
+    ],
+    "start_year": 2041,
+    "end_year": 2041
+  },
+  {
+    "cityText": "After the pandemic, the city rebuilds rapidly. Construction cranes fill the skyline and business booms.",
+    "assetText": "Central banks slash interest rates post-crisis. Both bonds and stocks rally hard in the recovery.",
+    "seriousness": "neutral",
+    "symbols": [
+      "SPY",
+      "QQQ",
+      "XLF",
+      "EEM"
+    ],
+    "values": [
+      1.25,
+      1.3,
+      1.2,
+      1.18
+    ],
+    "start_year": 2042,
+    "end_year": 2042
+  },
+  {
+    "cityText": "A stock market bubble bursts. The city's entire financial district is in freefall.",
+    "assetText": "A speculative bubble bursts in tech and growth stocks. Markets crash across the board.",
+    "seriousness": "serious",
+    "symbols": [
+      "QQQ",
+      "SPY",
+      "AAPL",
+      "TCEHY",
+      "LOGI"
+    ],
+    "values": [
+      0.65,
+      0.72,
+      0.68,
+      0.6,
+      0.7
+    ],
+    "start_year": 2044,
+    "end_year": 2045
+  },
+  {
+    "cityText": "A global pandemic sweeps through the city. Nearly every building goes dark as lockdowns begin.",
+    "assetText": "A global pandemic causes panic selling across all equity markets. Every stock drops sharply.",
+    "seriousness": "serious",
+    "symbols": [
+      "SPY",
+      "QQQ",
+      "XLF",
+      "XLV",
+      "EEM",
+      "EWL"
+    ],
+    "values": [
+      0.7,
+      0.68,
+      0.65,
+      0.85,
+      0.72,
+      0.73
+    ],
+    "start_year": 2045,
+    "end_year": 2046
+  },
+  {
+    "cityText": "A quantum computing lab opens in the Tech District, drawing global talent and investment.",
+    "assetText": "A quantum computing breakthrough is announced. Tech stocks see a wave of speculative buying.",
+    "seriousness": "neutral",
+    "symbols": [
+      "QQQ",
+      "AAPL",
+      "TCEHY",
+      "LOGI"
+    ],
+    "values": [
+      1.18,
+      1.15,
+      1.12,
+      1.1
+    ],
+    "start_year": 2046,
+    "end_year": 2046
+  },
+  {
+    "cityText": "A new metro line connects all city districts. Foot traffic in every neighborhood doubles.",
+    "assetText": "Major infrastructure investment boosts economic connectivity. Broad market and real assets rally.",
+    "seriousness": "neutral",
+    "symbols": [
+      "SPY",
+      "EWL",
+      "POST"
+    ],
+    "values": [
+      1.07,
+      1.09,
+      1.1
+    ],
+    "start_year": 2047,
+    "end_year": 2047
+  },
+  {
+    "cityText": "The Emerging Markets Bazaar explodes with activity as new infrastructure links open trade routes.",
+    "assetText": "Emerging markets boom as a wave of foreign direct investment floods into Asia and Africa.",
+    "seriousness": "neutral",
+    "symbols": [
+      "EEM",
+      "IBN",
+      "ZLAB"
+    ],
+    "values": [
+      1.18,
+      1.15,
+      1.1
+    ],
+    "start_year": 2048,
+    "end_year": 2048
+  },
+  {
+    "cityText": "The Swiss Quarter flourishes as the city signs a major international trade deal.",
+    "assetText": "Switzerland's trade surplus hits a record high. The Swiss ETF outperforms all other markets.",
+    "seriousness": "neutral",
+    "symbols": [
+      "EWL",
+      "NVS"
+    ],
+    "values": [
+      1.14,
+      1.09
+    ],
+    "start_year": 2049,
+    "end_year": 2049
+  },
+  {
+    "cityText": "A prolonged drought devastates the Emerging Markets Bazaar. Crop failures ripple across the district.",
+    "assetText": "Climate-related crop failures spike food inflation in emerging markets. EEM underperforms sharply.",
+    "seriousness": "negative",
+    "symbols": [
+      "EEM",
+      "IBN",
+      "ZLAB"
+    ],
+    "values": [
+      0.83,
+      0.88,
+      0.85
+    ],
+    "start_year": 2049,
+    "end_year": 2049
+  },
+  {
+    "cityText": "The Hospital is caught falsifying patient records. The city shuts down two wards.",
+    "assetText": "Novartis is caught in a data fraud scandal involving clinical trials. The stock drops significantly.",
+    "seriousness": "negative",
+    "symbols": [
+      "NVS"
+    ],
+    "values": [
+      0.82
+    ],
+    "start_year": 2050,
+    "end_year": 2050
+  },
+  {
+    "cityText": "A trade war breaks out between the city's Eastern and Western districts. Tariffs cripple businesses.",
+    "assetText": "A US-China trade war escalates. Tariffs slam tech and emerging market stocks hard.",
+    "seriousness": "serious",
+    "symbols": [
+      "TCEHY",
+      "LOGI",
+      "EEM",
+      "QQQ"
+    ],
+    "values": [
+      0.78,
+      0.85,
+      0.8,
+      0.88
+    ],
+    "start_year": 2052,
+    "end_year": 2053
+  },
+  {
+    "cityText": "After the currency crisis, the Eastern district stabilizes. Patient investors reap massive gains.",
+    "assetText": "Emerging markets recover strongly post-crisis. Those who held through the volatility are rewarded.",
+    "seriousness": "neutral",
+    "symbols": [
+      "EEM",
+      "IBN",
+      "ZLAB"
+    ],
+    "values": [
+      1.28,
+      1.2,
+      1.18
+    ],
+    "start_year": 2056,
+    "end_year": 2056
+  },
+  {
+    "cityText": "A robotics revolution automates half the jobs in the Factory district. Output doubles but workers protest.",
+    "assetText": "Automation wave lifts manufacturing productivity. Tech and industrial stocks benefit.",
+    "seriousness": "neutral",
+    "symbols": [
+      "PFE",
+      "LOGI",
+      "QQQ"
+    ],
+    "values": [
+      1.1,
+      1.14,
+      1.08
+    ],
+    "start_year": 2056,
+    "end_year": 2056
+  },
+  {
+    "cityText": "The Hospital district receives a massive government grant for public health infrastructure.",
+    "assetText": "A landmark public health bill passes, increasing government healthcare spending significantly.",
+    "seriousness": "neutral",
+    "symbols": [
+      "NVS",
+      "PFE",
+      "XLV"
+    ],
+    "values": [
+      1.13,
+      1.11,
+      1.1
+    ],
+    "start_year": 2056,
+    "end_year": 2056
+  },
+  {
+    "cityText": "The Swiss Quarter announces a landmark trade agreement with the Eastern district.",
+    "assetText": "Switzerland signs a landmark bilateral trade deal, boosting exports. EWL outperforms peers.",
+    "seriousness": "neutral",
+    "symbols": [
+      "EWL",
+      "NVS",
+      "LOGI"
+    ],
+    "values": [
+      1.12,
+      1.08,
+      1.07
+    ],
+    "start_year": 2058,
+    "end_year": 2058
+  },
+  {
+    "cityText": "A city-wide heatwave forces businesses to close early for weeks. Foot traffic collapses.",
+    "assetText": "A prolonged global drought triggers supply chain crises. Consumer-facing stocks drop.",
+    "seriousness": "negative",
+    "symbols": [
+      "LOGI",
+      "AAPL",
+      "POST",
+      "SPY"
+    ],
+    "values": [
+      0.91,
+      0.93,
+      0.89,
+      0.94
+    ],
+    "start_year": 2058,
+    "end_year": 2058
+  },
+  {
+    "cityText": "The Hospital pioneers a new cancer treatment. Patients travel from across the country.",
+    "assetText": "Novartis receives FDA approval for a breakthrough oncology drug. Revenue forecasts surge.",
+    "seriousness": "neutral",
+    "symbols": [
+      "NVS",
+      "XLV"
+    ],
+    "values": [
+      1.2,
+      1.08
+    ],
+    "start_year": 2058,
+    "end_year": 2058
+  },
+  {
+    "cityText": "The Bank announces record profits after expanding into the city's new financial district.",
+    "assetText": "J.P. Morgan reports its best quarterly earnings ever, driven by investment banking fees.",
+    "seriousness": "neutral",
+    "symbols": [
+      "JPM",
+      "XLF"
+    ],
+    "values": [
+      1.14,
+      1.07
+    ],
+    "start_year": 2059,
+    "end_year": 2059
+  },
+  {
+    "cityText": "The city's mayor resigns in a corruption scandal. The entire financial district loses confidence.",
+    "assetText": "A major government corruption scandal erupts. Investor confidence crashes and markets wobble.",
+    "seriousness": "timed",
+    "symbols": [
+      "SPY",
+      "XLF",
+      "JPM"
+    ],
+    "values": [
+      0.91,
+      0.87,
+      0.85
+    ],
+    "start_year": 2060,
+    "end_year": 2063
+  },
+  {
+    "cityText": "The Asian Groceries Store becomes a cultural landmark after a food documentary goes viral.",
+    "assetText": "Zai Lab's new immunotherapy drug gets fast-tracked by regulators. Biotech investors pile in.",
+    "seriousness": "neutral",
+    "symbols": [
+      "ZLAB",
+      "XLV"
+    ],
+    "values": [
+      1.25,
+      1.06
+    ],
+    "start_year": 2062,
+    "end_year": 2062
+  },
+  {
+    "cityText": "The Asian Groceries Store is linked to a foodborne illness outbreak. The city closes it temporarily.",
+    "assetText": "Zai Lab's flagship drug fails Phase 3 trials. Shares collapse on the news.",
+    "seriousness": "negative",
+    "symbols": [
+      "ZLAB"
+    ],
+    "values": [
+      0.7
+    ],
+    "start_year": 2063,
+    "end_year": 2063
+  },
+  {
+    "cityText": "The Highrise-Bar launches a viral rooftop festival. Lines stretch around the block every weekend.",
+    "assetText": "Apple unveils a revolutionary AR headset to massive consumer demand. Stock surges.",
+    "seriousness": "neutral",
+    "symbols": [
+      "AAPL"
+    ],
+    "values": [
+      1.18
+    ],
+    "start_year": 2063,
+    "end_year": 2063
+  },
+  {
+    "cityText": "The Bank is implicated in a money laundering investigation. Regulators freeze accounts.",
+    "assetText": "J.P. Morgan faces a congressional investigation into alleged market manipulation.",
+    "seriousness": "serious",
+    "symbols": [
+      "JPM",
+      "XLF"
+    ],
+    "values": [
+      0.78,
+      0.92
+    ],
+    "start_year": 2064,
+    "end_year": 2065
+  },
+  {
+    "cityText": "The Arcade is exposed for harvesting children's data illegally. Parents boycott en masse.",
+    "assetText": "Tencent faces a global data privacy lawsuit and is banned in several key markets.",
+    "seriousness": "serious",
+    "symbols": [
+      "TCEHY",
+      "QQQ"
+    ],
+    "values": [
+      0.75,
+      0.95
+    ],
+    "start_year": 2065,
+    "end_year": 2066
+  },
+  {
+    "cityText": "Green energy infrastructure is rolled out across the city. Businesses cut costs and attract new talent.",
+    "assetText": "A major green energy transition reduces corporate energy costs. ESG-focused stocks outperform.",
+    "seriousness": "neutral",
+    "symbols": [
+      "SPY",
+      "NVS",
+      "EWL",
+      "QQQ"
+    ],
+    "values": [
+      1.07,
+      1.1,
+      1.09,
+      1.08
+    ],
+    "start_year": 2065,
+    "end_year": 2065
+  },
+  {
+    "cityText": "A massive earthquake strikes the city. Buildings crack and businesses close across all districts.",
+    "assetText": "A major geopolitical conflict disrupts global supply chains. Broad market sell-off ensues.",
+    "seriousness": "serious",
+    "symbols": [
+      "SPY",
+      "EEM",
+      "EWL",
+      "QQQ"
+    ],
+    "values": [
+      0.78,
+      0.72,
+      0.8,
+      0.82
+    ],
+    "start_year": 2066,
+    "end_year": 2067
+  },
+  {
+    "cityText": "The city implements a universal basic income pilot. Consumer spending rises sharply across all districts.",
+    "assetText": "A major government stimulus package is announced. Broad market rallies on improved growth outlook.",
+    "seriousness": "neutral",
+    "symbols": [
+      "SPY",
+      "XLF",
+      "POST",
+      "LOGI"
+    ],
+    "values": [
+      1.09,
+      1.07,
+      1.11,
+      1.08
+    ],
+    "start_year": 2066,
+    "end_year": 2066
+  },
+  {
+    "cityText": "The Bank introduces a revolutionary instant payment system. Every merchant in the city upgrades.",
+    "assetText": "J.P. Morgan launches a real-time payment network adopted by thousands of institutions globally.",
+    "seriousness": "neutral",
+    "symbols": [
+      "JPM",
+      "XLF",
+      "POST"
+    ],
+    "values": [
+      1.14,
+      1.09,
+      1.06
+    ],
+    "start_year": 2066,
+    "end_year": 2066
+  },
+  {
+    "cityText": "An energy crisis hits the city. Electricity bills triple and factories scale back production.",
+    "assetText": "A global energy crisis drives up costs for manufacturers and tech firms. Profit margins shrink.",
+    "seriousness": "serious",
+    "symbols": [
+      "PFE",
+      "LOGI",
+      "QQQ",
+      "SPY"
+    ],
+    "values": [
+      0.88,
+      0.86,
+      0.9,
+      0.91
+    ],
+    "start_year": 2067,
+    "end_year": 2068
+  },
+  {
+    "cityText": "The Post Office faces a delivery crisis as its sorting machines break down citywide.",
+    "assetText": "PostFinance's digital infrastructure collapses, blocking customer transactions for days.",
+    "seriousness": "negative",
+    "symbols": [
+      "POST"
+    ],
+    "values": [
+      0.86
+    ],
+    "start_year": 2068,
+    "end_year": 2068
+  },
+  {
+    "cityText": "The city's Arcade hosts the first intercontinental esports championship. Millions tune in.",
+    "assetText": "Esports viewership surpasses traditional sports globally. Tencent and gaming stocks explode higher.",
+    "seriousness": "neutral",
+    "symbols": [
+      "TCEHY",
+      "AAPL",
+      "QQQ"
+    ],
+    "values": [
+      1.2,
+      1.07,
+      1.09
+    ],
+    "start_year": 2069,
+    "end_year": 2069
+  },
+  {
+    "cityText": "The Arcade introduces a globally acclaimed VR game. Kids and adults queue for hours.",
+    "assetText": "Tencent's new metaverse platform attracts 500 million users in its first month.",
+    "seriousness": "neutral",
+    "symbols": [
+      "TCEHY"
+    ],
+    "values": [
+      1.22
+    ],
+    "start_year": 2070,
+    "end_year": 2070
+  },
+  {
+    "cityText": "The healthcare district celebrates a historic breakthrough in longevity treatments.",
+    "assetText": "A longevity biotech breakthrough sends healthcare stocks soaring across the board.",
+    "seriousness": "neutral",
+    "symbols": [
+      "NVS",
+      "PFE",
+      "XLV",
+      "ZLAB"
+    ],
+    "values": [
+      1.22,
+      1.18,
+      1.14,
+      1.25
+    ],
+    "start_year": 2071,
+    "end_year": 2071
+  },
+  {
+    "cityText": "Gene therapy clinics open across the Healthcare District. The city's Hospital reaches full capacity.",
+    "assetText": "Gene therapy gains full regulatory approval. Healthcare and biotech stocks surge on blockbuster potential.",
+    "seriousness": "neutral",
+    "symbols": [
+      "NVS",
+      "ZLAB",
+      "PFE",
+      "XLV"
+    ],
+    "values": [
+      1.18,
+      1.22,
+      1.12,
+      1.13
+    ],
+    "start_year": 2071,
+    "end_year": 2071
+  },
+  {
+    "cityText": "The Retail Shop becomes the city's go-to tech hub after a stunning renovation.",
+    "assetText": "Logitech's new AI-powered peripherals fly off shelves globally, beating all estimates.",
+    "seriousness": "neutral",
+    "symbols": [
+      "LOGI",
+      "QQQ"
+    ],
+    "values": [
+      1.17,
+      1.06
+    ],
+    "start_year": 2072,
+    "end_year": 2072
+  },
+  {
+    "cityText": "A cyberattack disables the city's banking and post office networks for a week.",
+    "assetText": "A massive ransomware attack hits financial and logistics firms. Stocks in those sectors tank.",
+    "seriousness": "serious",
+    "symbols": [
+      "JPM",
+      "POST",
+      "XLF"
+    ],
+    "values": [
+      0.84,
+      0.8,
+      0.87
+    ],
+    "start_year": 2073,
+    "end_year": 2074
+  },
+  {
+    "cityText": "The city recovers from the bubble burst. Savvy investors who held on celebrate new highs.",
+    "assetText": "Markets recover from the crash. Long-term holders are rewarded as stocks reach new all-time highs.",
+    "seriousness": "neutral",
+    "symbols": [
+      "QQQ",
+      "SPY",
+      "AAPL"
+    ],
+    "values": [
+      1.3,
+      1.22,
+      1.25
+    ],
+    "start_year": 2074,
+    "end_year": 2074
+  },
+  {
+    "cityText": "A rare sunny spring brings record foot traffic to every outdoor business in the city.",
+    "assetText": "Consumer confidence hits a decade high. Retail and consumer stocks surge on strong spending data.",
+    "seriousness": "neutral",
+    "symbols": [
+      "LOGI",
+      "AAPL",
+      "POST",
+      "SPY"
+    ],
+    "values": [
+      1.09,
+      1.07,
+      1.1,
+      1.06
+    ],
+    "start_year": 2074,
+    "end_year": 2074
+  },
+  {
+    "cityText": "A sweeping AI revolution transforms every business in the city's tech district overnight.",
+    "assetText": "A major AI breakthrough sparks a tech rally. Apple, Logitech, and the tech ETF surge.",
+    "seriousness": "neutral",
+    "symbols": [
+      "AAPL",
+      "LOGI",
+      "QQQ",
+      "TCEHY"
+    ],
+    "values": [
+      1.2,
+      1.18,
+      1.15,
+      1.12
+    ],
+    "start_year": 2074,
+    "end_year": 2074
+  },
+  {
+    "cityText": "A cold winter keeps everyone indoors. The Arcade and Highrise-Bar thrive while outdoor shops struggle.",
+    "assetText": "Consumer spending shifts to digital entertainment and premium experiences. Mixed results across sectors.",
+    "seriousness": "neutral",
+    "symbols": [
+      "TCEHY",
+      "AAPL",
+      "LOGI",
+      "POST"
+    ],
+    "values": [
+      1.1,
+      1.08,
+      0.93,
+      0.91
+    ],
+    "start_year": 2075,
+    "end_year": 2075
+  },
+  {
+    "cityText": "The ICICI Bank branch is robbed and exposed for poor security practices. Customers withdraw savings.",
+    "assetText": "ICICI Bank reports unexpectedly high non-performing loans. Investors panic and sell off.",
+    "seriousness": "negative",
+    "symbols": [
+      "IBN"
+    ],
+    "values": [
+      0.83
+    ],
+    "start_year": 2076,
+    "end_year": 2076
+  },
+  {
+    "cityText": "The city passes sweeping anti-monopoly laws breaking up the Tech District's biggest player.",
+    "assetText": "Regulators launch antitrust action against big tech. Apple and Tencent face potential breakups.",
+    "seriousness": "serious",
+    "symbols": [
+      "AAPL",
+      "TCEHY",
+      "QQQ"
+    ],
+    "values": [
+      0.8,
+      0.77,
+      0.88
+    ],
+    "start_year": 2077,
+    "end_year": 2078
+  },
+  {
+    "cityText": "The Factory is hit by a major labor strike. Production halts for weeks.",
+    "assetText": "Pfizer faces a manufacturing shutdown due to worker strikes. Supply chains are disrupted.",
+    "seriousness": "negative",
+    "symbols": [
+      "PFE"
+    ],
+    "values": [
+      0.87
+    ],
+    "start_year": 2077,
+    "end_year": 2077
+  },
+  {
+    "cityText": "A health inspector finds rats in the Highrise-Bar kitchen. Customers flee and revenue crashes.",
+    "assetText": "Apple faces a major product recall scandal. Consumer trust plummets and the stock sells off sharply.",
+    "seriousness": "negative",
+    "symbols": [
+      "AAPL"
+    ],
+    "values": [
+      0.85
+    ],
+    "start_year": 2078,
+    "end_year": 2078
+  },
+  {
+    "cityText": "A currency crisis in the Eastern district wipes out savings. The ICICI Bank branch is overwhelmed.",
+    "assetText": "An emerging market currency crisis triggers capital flight. Emerging market ETF craters.",
+    "seriousness": "serious",
+    "symbols": [
+      "EEM",
+      "IBN",
+      "ZLAB"
+    ],
+    "values": [
+      0.72,
+      0.75,
+      0.8
+    ],
+    "start_year": 2081,
+    "end_year": 2082
+  },
+  {
+    "cityText": "A massive flood hits the lower city. The Post Office and Factory districts are underwater.",
+    "assetText": "Natural disasters disrupt logistics and manufacturing. Insurance claims spike and stocks dip.",
+    "seriousness": "negative",
+    "symbols": [
+      "POST",
+      "PFE",
+      "SPY"
+    ],
+    "values": [
+      0.84,
+      0.87,
+      0.93
+    ],
+    "start_year": 2082,
+    "end_year": 2082
+  },
+  {
+    "cityText": "A new city energy tax hikes operating costs for factories and hospitals across the district.",
+    "assetText": "New carbon taxes raise operating costs for industrial and pharma firms. Margins compress.",
+    "seriousness": "negative",
+    "symbols": [
+      "PFE",
+      "NVS",
+      "XLV"
+    ],
+    "values": [
+      0.9,
+      0.91,
+      0.93
+    ],
+    "start_year": 2084,
+    "end_year": 2084
+  },
+  {
+    "cityText": "The city hosts a world expo. Tourism explodes and every business in the city profits.",
+    "assetText": "A global economic summit boosts investor confidence. Broad market rally lifts all assets.",
+    "seriousness": "neutral",
+    "symbols": [
+      "SPY",
+      "EWL",
+      "EEM",
+      "AAPL"
+    ],
+    "values": [
+      1.1,
+      1.12,
+      1.09,
+      1.08
+    ],
+    "start_year": 2084,
+    "end_year": 2084
+  },
+  {
+    "cityText": "The ICICI Bank branch opens a new microfinance program, bringing in thousands of new customers.",
+    "assetText": "ICICI Bank beats earnings estimates after strong growth in digital banking subscriptions.",
+    "seriousness": "neutral",
+    "symbols": [
+      "IBN",
+      "EEM"
+    ],
+    "values": [
+      1.13,
+      1.05
+    ],
+    "start_year": 2085,
+    "end_year": 2085
+  },
+  {
+    "cityText": "The city's population hits a milestone, driving massive demand for housing and services.",
+    "assetText": "Strong demographic data boosts consumer and financial stocks on improved long-term growth outlook.",
+    "seriousness": "neutral",
+    "symbols": [
+      "SPY",
+      "JPM",
+      "XLF",
+      "POST"
+    ],
+    "values": [
+      1.06,
+      1.08,
+      1.07,
+      1.05
+    ],
+    "start_year": 2085,
+    "end_year": 2085
+  },
+  {
+    "cityText": "The city's financial quarter celebrates record bonuses as interest rates rise sharply.",
+    "assetText": "The Federal Reserve raises interest rates aggressively. Bank stocks soar on higher margins.",
+    "seriousness": "neutral",
+    "symbols": [
+      "JPM",
+      "XLF"
+    ],
+    "values": [
+      1.16,
+      1.12
+    ],
+    "start_year": 2085,
+    "end_year": 2085
+  },
+  {
+    "cityText": "The Post Office launches a same-day drone delivery service. The city buzzes with excitement.",
+    "assetText": "PostFinance integrates a leading fintech platform, attracting a wave of new customers.",
+    "seriousness": "neutral",
+    "symbols": [
+      "POST"
+    ],
+    "values": [
+      1.12
+    ],
+    "start_year": 2086,
+    "end_year": 2086
+  },
+  {
+    "cityText": "The city's central bank cuts interest rates to zero. Loans are cheap and businesses invest aggressively.",
+    "assetText": "The central bank cuts rates to zero. Growth stocks and tech rally as borrowing becomes nearly free.",
+    "seriousness": "neutral",
+    "symbols": [
+      "QQQ",
+      "AAPL",
+      "TCEHY",
+      "SPY"
+    ],
+    "values": [
+      1.15,
+      1.12,
+      1.1,
+      1.08
+    ],
+    "start_year": 2087,
+    "end_year": 2087
+  },
+  {
+    "cityText": "The city elects a wild new mayor who unpredictably reshuffles zoning laws every month.",
+    "assetText": "A controversial new president is elected. Markets swing wildly as policy uncertainty spikes.",
+    "seriousness": "timed",
+    "symbols": [
+      "SPY",
+      "QQQ",
+      "XLF"
+    ],
+    "values": [
+      0.95,
+      0.93,
+      0.91
+    ],
+    "start_year": 2088,
+    "end_year": 2090
+  },
+  {
+    "cityText": "The Factory lands a massive government defense contract, running three shifts a day.",
+    "assetText": "Pfizer wins a multi-billion dollar government vaccine supply contract.",
+    "seriousness": "neutral",
+    "symbols": [
+      "PFE"
+    ],
+    "values": [
+      1.15
+    ],
+    "start_year": 2089,
+    "end_year": 2089
+  },
+  {
+    "cityText": "The Retail Shop is flooded after a burst pipe. Inventory is destroyed.",
+    "assetText": "Logitech suffers a major warehouse fire, destroying key inventory ahead of the holiday season.",
+    "seriousness": "negative",
+    "symbols": [
+      "LOGI"
+    ],
+    "values": [
+      0.88
+    ],
+    "start_year": 2091,
+    "end_year": 2091
+  },
+  {
+    "cityText": "After the pandemic, the city rebuilds rapidly. Construction cranes fill the skyline and business booms.",
+    "assetText": "Central banks slash interest rates post-crisis. Both bonds and stocks rally hard in the recovery.",
+    "seriousness": "neutral",
+    "symbols": [
+      "SPY",
+      "QQQ",
+      "XLF",
+      "EEM"
+    ],
+    "values": [
+      1.25,
+      1.3,
+      1.2,
+      1.18
+    ],
+    "start_year": 2091,
+    "end_year": 2091
+  },
+  {
+    "cityText": "Inflation spirals out of control. Every shop raises prices and foot traffic collapses.",
+    "assetText": "Inflation surges to a 40-year high. Stocks drop as real returns erode and consumers cut spending.",
+    "seriousness": "serious",
+    "symbols": [
+      "SPY",
+      "QQQ",
+      "XLF",
+      "LOGI",
+      "AAPL"
+    ],
+    "values": [
+      0.85,
+      0.82,
+      0.88,
+      0.87,
+      0.86
+    ],
+    "start_year": 2092,
+    "end_year": 2093
+  },
+  {
+    "cityText": "A quantum computing lab opens in the Tech District, drawing global talent and investment.",
+    "assetText": "A quantum computing breakthrough is announced. Tech stocks see a wave of speculative buying.",
+    "seriousness": "neutral",
+    "symbols": [
+      "QQQ",
+      "AAPL",
+      "TCEHY",
+      "LOGI"
+    ],
+    "values": [
+      1.18,
+      1.15,
+      1.12,
+      1.1
+    ],
+    "start_year": 2093,
+    "end_year": 2093
+  },
+  {
+    "cityText": "A new metro line connects all city districts. Foot traffic in every neighborhood doubles.",
+    "assetText": "Major infrastructure investment boosts economic connectivity. Broad market and real assets rally.",
+    "seriousness": "neutral",
+    "symbols": [
+      "SPY",
+      "EWL",
+      "POST"
+    ],
+    "values": [
+      1.07,
+      1.09,
+      1.1
+    ],
+    "start_year": 2094,
+    "end_year": 2094
+  },
+  {
+    "cityText": "The Emerging Markets Bazaar explodes with activity as new infrastructure links open trade routes.",
+    "assetText": "Emerging markets boom as a wave of foreign direct investment floods into Asia and Africa.",
+    "seriousness": "neutral",
+    "symbols": [
+      "EEM",
+      "IBN",
+      "ZLAB"
+    ],
+    "values": [
+      1.18,
+      1.15,
+      1.1
+    ],
+    "start_year": 2094,
+    "end_year": 2094
+  },
+  {
+    "cityText": "The Swiss Quarter flourishes as the city signs a major international trade deal.",
+    "assetText": "Switzerland's trade surplus hits a record high. The Swiss ETF outperforms all other markets.",
+    "seriousness": "neutral",
+    "symbols": [
+      "EWL",
+      "NVS"
+    ],
+    "values": [
+      1.14,
+      1.09
+    ],
+    "start_year": 2096,
+    "end_year": 2096
+  },
+  {
+    "cityText": "A prolonged drought devastates the Emerging Markets Bazaar. Crop failures ripple across the district.",
+    "assetText": "Climate-related crop failures spike food inflation in emerging markets. EEM underperforms sharply.",
+    "seriousness": "negative",
+    "symbols": [
+      "EEM",
+      "IBN",
+      "ZLAB"
+    ],
+    "values": [
+      0.83,
+      0.88,
+      0.85
+    ],
+    "start_year": 2098,
+    "end_year": 2098
+  },
+  {
+    "cityText": "The Hospital is caught falsifying patient records. The city shuts down two wards.",
+    "assetText": "Novartis is caught in a data fraud scandal involving clinical trials. The stock drops significantly.",
+    "seriousness": "negative",
+    "symbols": [
+      "NVS"
+    ],
+    "values": [
+      0.82
+    ],
+    "start_year": 2099,
+    "end_year": 2099
+  },
+  {
+    "cityText": "After the currency crisis, the Eastern district stabilizes. Patient investors reap massive gains.",
+    "assetText": "Emerging markets recover strongly post-crisis. Those who held through the volatility are rewarded.",
+    "seriousness": "neutral",
+    "symbols": [
+      "EEM",
+      "IBN",
+      "ZLAB"
+    ],
+    "values": [
+      1.28,
+      1.2,
+      1.18
+    ],
+    "start_year": 2099,
+    "end_year": 2099
+  },
+  {
+    "cityText": "A robotics revolution automates half the jobs in the Factory district. Output doubles but workers protest.",
+    "assetText": "Automation wave lifts manufacturing productivity. Tech and industrial stocks benefit.",
+    "seriousness": "neutral",
+    "symbols": [
+      "PFE",
+      "LOGI",
+      "QQQ"
+    ],
+    "values": [
+      1.1,
+      1.14,
+      1.08
+    ],
+    "start_year": 2099,
+    "end_year": 2099
+  },
+  {
+    "cityText": "The Hospital district receives a massive government grant for public health infrastructure.",
+    "assetText": "A landmark public health bill passes, increasing government healthcare spending significantly.",
+    "seriousness": "neutral",
+    "symbols": [
+      "NVS",
+      "PFE",
+      "XLV"
+    ],
+    "values": [
+      1.13,
+      1.11,
+      1.1
+    ],
+    "start_year": 2100,
+    "end_year": 2100
+  },
+  {
+    "cityText": "The Swiss Quarter announces a landmark trade agreement with the Eastern district.",
+    "assetText": "Switzerland signs a landmark bilateral trade deal, boosting exports. EWL outperforms peers.",
+    "seriousness": "neutral",
+    "symbols": [
+      "EWL",
+      "NVS",
+      "LOGI"
+    ],
+    "values": [
+      1.12,
+      1.08,
+      1.07
+    ],
+    "start_year": 2102,
+    "end_year": 2102
+  },
+  {
+    "cityText": "A city-wide heatwave forces businesses to close early for weeks. Foot traffic collapses.",
+    "assetText": "A prolonged global drought triggers supply chain crises. Consumer-facing stocks drop.",
+    "seriousness": "negative",
+    "symbols": [
+      "LOGI",
+      "AAPL",
+      "POST",
+      "SPY"
+    ],
+    "values": [
+      0.91,
+      0.93,
+      0.89,
+      0.94
+    ],
+    "start_year": 2104,
+    "end_year": 2104
+  },
+  {
+    "cityText": "The Hospital pioneers a new cancer treatment. Patients travel from across the country.",
+    "assetText": "Novartis receives FDA approval for a breakthrough oncology drug. Revenue forecasts surge.",
+    "seriousness": "neutral",
+    "symbols": [
+      "NVS",
+      "XLV"
+    ],
+    "values": [
+      1.2,
+      1.08
+    ],
+    "start_year": 2104,
+    "end_year": 2104
+  },
+  {
+    "cityText": "The Bank announces record profits after expanding into the city's new financial district.",
+    "assetText": "J.P. Morgan reports its best quarterly earnings ever, driven by investment banking fees.",
+    "seriousness": "neutral",
+    "symbols": [
+      "JPM",
+      "XLF"
+    ],
+    "values": [
+      1.14,
+      1.07
+    ],
+    "start_year": 2105,
+    "end_year": 2105
+  },
+  {
+    "cityText": "The Asian Groceries Store becomes a cultural landmark after a food documentary goes viral.",
+    "assetText": "Zai Lab's new immunotherapy drug gets fast-tracked by regulators. Biotech investors pile in.",
+    "seriousness": "neutral",
+    "symbols": [
+      "ZLAB",
+      "XLV"
+    ],
+    "values": [
+      1.25,
+      1.06
+    ],
+    "start_year": 2106,
+    "end_year": 2106
+  },
+  {
+    "cityText": "The Asian Groceries Store is linked to a foodborne illness outbreak. The city closes it temporarily.",
+    "assetText": "Zai Lab's flagship drug fails Phase 3 trials. Shares collapse on the news.",
+    "seriousness": "negative",
+    "symbols": [
+      "ZLAB"
+    ],
+    "values": [
+      0.7
+    ],
+    "start_year": 2108,
+    "end_year": 2108
+  },
+  {
+    "cityText": "The Highrise-Bar launches a viral rooftop festival. Lines stretch around the block every weekend.",
+    "assetText": "Apple unveils a revolutionary AR headset to massive consumer demand. Stock surges.",
+    "seriousness": "neutral",
+    "symbols": [
+      "AAPL"
+    ],
+    "values": [
+      1.18
+    ],
+    "start_year": 2108,
+    "end_year": 2108
+  },
+  {
+    "cityText": "Green energy infrastructure is rolled out across the city. Businesses cut costs and attract new talent.",
+    "assetText": "A major green energy transition reduces corporate energy costs. ESG-focused stocks outperform.",
+    "seriousness": "neutral",
+    "symbols": [
+      "SPY",
+      "NVS",
+      "EWL",
+      "QQQ"
+    ],
+    "values": [
+      1.07,
+      1.1,
+      1.09,
+      1.08
+    ],
+    "start_year": 2109,
+    "end_year": 2109
+  },
+  {
+    "cityText": "The city implements a universal basic income pilot. Consumer spending rises sharply across all districts.",
+    "assetText": "A major government stimulus package is announced. Broad market rallies on improved growth outlook.",
+    "seriousness": "neutral",
+    "symbols": [
+      "SPY",
+      "XLF",
+      "POST",
+      "LOGI"
+    ],
+    "values": [
+      1.09,
+      1.07,
+      1.11,
+      1.08
+    ],
+    "start_year": 2111,
+    "end_year": 2111
+  },
+  {
+    "cityText": "The Bank introduces a revolutionary instant payment system. Every merchant in the city upgrades.",
+    "assetText": "J.P. Morgan launches a real-time payment network adopted by thousands of institutions globally.",
+    "seriousness": "neutral",
+    "symbols": [
+      "JPM",
+      "XLF",
+      "POST"
+    ],
+    "values": [
+      1.14,
+      1.09,
+      1.06
+    ],
+    "start_year": 2113,
+    "end_year": 2113
+  },
+  {
+    "cityText": "The Post Office faces a delivery crisis as its sorting machines break down citywide.",
+    "assetText": "PostFinance's digital infrastructure collapses, blocking customer transactions for days.",
+    "seriousness": "negative",
+    "symbols": [
+      "POST"
+    ],
+    "values": [
+      0.86
+    ],
+    "start_year": 2116,
+    "end_year": 2116
+  },
+  {
+    "cityText": "The city's Arcade hosts the first intercontinental esports championship. Millions tune in.",
+    "assetText": "Esports viewership surpasses traditional sports globally. Tencent and gaming stocks explode higher.",
+    "seriousness": "neutral",
+    "symbols": [
+      "TCEHY",
+      "AAPL",
+      "QQQ"
+    ],
+    "values": [
+      1.2,
+      1.07,
+      1.09
+    ],
+    "start_year": 2116,
+    "end_year": 2116
+  },
+  {
+    "cityText": "The Arcade introduces a globally acclaimed VR game. Kids and adults queue for hours.",
+    "assetText": "Tencent's new metaverse platform attracts 500 million users in its first month.",
+    "seriousness": "neutral",
+    "symbols": [
+      "TCEHY"
+    ],
+    "values": [
+      1.22
+    ],
+    "start_year": 2117,
+    "end_year": 2117
+  },
+  {
+    "cityText": "The healthcare district celebrates a historic breakthrough in longevity treatments.",
+    "assetText": "A longevity biotech breakthrough sends healthcare stocks soaring across the board.",
+    "seriousness": "neutral",
+    "symbols": [
+      "NVS",
+      "PFE",
+      "XLV",
+      "ZLAB"
+    ],
+    "values": [
+      1.22,
+      1.18,
+      1.14,
+      1.25
+    ],
+    "start_year": 2118,
+    "end_year": 2118
+  },
+  {
+    "cityText": "Gene therapy clinics open across the Healthcare District. The city's Hospital reaches full capacity.",
+    "assetText": "Gene therapy gains full regulatory approval. Healthcare and biotech stocks surge on blockbuster potential.",
+    "seriousness": "neutral",
+    "symbols": [
+      "NVS",
+      "ZLAB",
+      "PFE",
+      "XLV"
+    ],
+    "values": [
+      1.18,
+      1.22,
+      1.12,
+      1.13
+    ],
+    "start_year": 2118,
+    "end_year": 2118
+  },
+  {
+    "cityText": "The Retail Shop becomes the city's go-to tech hub after a stunning renovation.",
+    "assetText": "Logitech's new AI-powered peripherals fly off shelves globally, beating all estimates.",
+    "seriousness": "neutral",
+    "symbols": [
+      "LOGI",
+      "QQQ"
+    ],
+    "values": [
+      1.17,
+      1.06
+    ],
+    "start_year": 2122,
+    "end_year": 2122
+  },
+  {
+    "cityText": "The city recovers from the bubble burst. Savvy investors who held on celebrate new highs.",
+    "assetText": "Markets recover from the crash. Long-term holders are rewarded as stocks reach new all-time highs.",
+    "seriousness": "neutral",
+    "symbols": [
+      "QQQ",
+      "SPY",
+      "AAPL"
+    ],
+    "values": [
+      1.3,
+      1.22,
+      1.25
+    ],
+    "start_year": 2122,
+    "end_year": 2122
+  },
+  {
+    "cityText": "A rare sunny spring brings record foot traffic to every outdoor business in the city.",
+    "assetText": "Consumer confidence hits a decade high. Retail and consumer stocks surge on strong spending data.",
+    "seriousness": "neutral",
+    "symbols": [
+      "LOGI",
+      "AAPL",
+      "POST",
+      "SPY"
+    ],
+    "values": [
+      1.09,
+      1.07,
+      1.1,
+      1.06
+    ],
+    "start_year": 2124,
+    "end_year": 2124
+  },
+  {
+    "cityText": "A sweeping AI revolution transforms every business in the city's tech district overnight.",
+    "assetText": "A major AI breakthrough sparks a tech rally. Apple, Logitech, and the tech ETF surge.",
+    "seriousness": "neutral",
+    "symbols": [
+      "AAPL",
+      "LOGI",
+      "QQQ",
+      "TCEHY"
+    ],
+    "values": [
+      1.2,
+      1.18,
+      1.15,
+      1.12
+    ],
+    "start_year": 2124,
+    "end_year": 2124
+  },
+  {
+    "cityText": "A cold winter keeps everyone indoors. The Arcade and Highrise-Bar thrive while outdoor shops struggle.",
+    "assetText": "Consumer spending shifts to digital entertainment and premium experiences. Mixed results across sectors.",
+    "seriousness": "neutral",
+    "symbols": [
+      "TCEHY",
+      "AAPL",
+      "LOGI",
+      "POST"
+    ],
+    "values": [
+      1.1,
+      1.08,
+      0.93,
+      0.91
+    ],
+    "start_year": 2125,
+    "end_year": 2125
+  }
+]

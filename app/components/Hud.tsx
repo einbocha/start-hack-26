@@ -4,6 +4,7 @@ import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { diversificationHint, holdingValue, investedValue, netWorth, totalPnL } from '../../game/portfolio';
 import { GameState, ScriptedEvent } from '../../game/types';
 import { cityDisplayNameForAsset } from '../lib/cityBuildingAliases';
+import { eventTextForUiMode } from '../../game/events';
 
 type EventVisualKind = 'neutral' | 'negative' | 'info';
 
@@ -47,7 +48,12 @@ function eventMoves(event: ScriptedEvent) {
   return out;
 }
 
-function EventNotificationBubble({ event }: { event: ScriptedEvent }) {
+function eventMoveLabel(event: ScriptedEvent, idx: number, uiMode: 'city' | 'stocks'): string {
+  if (uiMode === 'city') return `Impact ${idx + 1}`;
+  return event.symbols[idx] ?? event.assets[idx] ?? `Item ${idx + 1}`;
+}
+
+function EventNotificationBubble({ event, uiMode }: { event: ScriptedEvent; uiMode: 'city' | 'stocks' }) {
   const kind: EventVisualKind =
     event.seriousness === 'info'
       ? 'info'
@@ -79,38 +85,43 @@ function EventNotificationBubble({ event }: { event: ScriptedEvent }) {
               fontWeight: 800,
               letterSpacing: '0.06em',
               textTransform: 'uppercase',
-              fontSize: 11,
+              fontSize: 13,
               color: 'rgba(255,255,255,0.9)',
             }}
           >
             {event.seriousness === 'info' ? 'Tutorial Notice' : 'Market Event'}
           </div>
-          <div style={{ marginTop: 2, fontWeight: 800, fontSize: 12, color: p.subtext, lineHeight: 1.25 }}>{event.text}</div>
-          <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            {moves.map((m, idx) => {
-              const pct = (m.value - 1) * 100;
-              const up = pct > 0;
-              const down = pct < 0;
-              const color = up ? 'rgba(120,255,180,0.95)' : down ? 'rgba(255,140,140,0.95)' : 'rgba(226,232,240,0.9)';
-              const arrow = up ? '▲' : down ? '▼' : '•';
-              return (
-                <span
-                  key={`${event.id}-${idx}-${m.label}`}
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 800,
-                    color,
-                    background: 'rgba(15,23,42,0.42)',
-                    border: '1px solid rgba(148,163,184,0.35)',
-                    borderRadius: 999,
-                    padding: '2px 7px',
-                  }}
-                >
-                  {m.label} {arrow} {Math.abs(pct).toFixed(1)}%
-                </span>
-              );
-            })}
+          <div style={{ marginTop: 3, fontWeight: 800, fontSize: 14, color: p.subtext, lineHeight: 1.3 }}>
+            {eventTextForUiMode(event, uiMode)}
           </div>
+          {uiMode === 'stocks' && (
+            <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {moves.map((m, idx) => {
+                const pct = (m.value - 1) * 100;
+                const up = pct > 0;
+                const down = pct < 0;
+                const color = up ? 'rgba(120,255,180,0.95)' : down ? 'rgba(255,140,140,0.95)' : 'rgba(226,232,240,0.9)';
+                const arrow = up ? '▲' : down ? '▼' : '•';
+                const label = eventMoveLabel(event, idx, uiMode);
+                return (
+                  <span
+                    key={`${event.id}-${idx}-${label}`}
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 800,
+                      color,
+                      background: 'rgba(15,23,42,0.42)',
+                      border: '1px solid rgba(148,163,184,0.35)',
+                      borderRadius: 999,
+                      padding: '2px 7px',
+                    }}
+                  >
+                    {label} {arrow} {Math.abs(pct).toFixed(1)}%
+                  </span>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -226,7 +237,7 @@ export function Hud({
             }}
           >
             <div style={{ display: 'inline-block', padding: '8px 0', animation: 'eventTickerScroll 16s linear infinite' }}>
-              {'BREAKING NEWS • ' + severeEvent.text + ' • '.repeat(6)}
+              {'BREAKING NEWS • ' + eventTextForUiMode(severeEvent, state.uiMode) + ' • '.repeat(6)}
             </div>
           </div>
         </div>
@@ -498,32 +509,37 @@ export function Hud({
               <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
                 {severeEvent.seriousness === 'timed' ? 'Timed Event' : 'Serious Event'}
               </div>
-              <div style={{ marginTop: 8, fontSize: 15, fontWeight: 900, lineHeight: 1.25 }}>{severeEvent.text}</div>
-              <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 7 }}>
-                {eventMoves(severeEvent).slice(0, 8).map((m, idx) => {
-                  const pct = (m.value - 1) * 100;
-                  const up = pct > 0;
-                  const down = pct < 0;
-                  const color = up ? 'rgba(120,255,180,0.98)' : down ? 'rgba(255,140,140,0.98)' : 'rgba(226,232,240,0.95)';
-                  const arrow = up ? '▲' : down ? '▼' : '•';
-                  return (
-                    <span
-                      key={`${severeEvent.id}-dock-list-${idx}-${m.label}`}
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 900,
-                        color,
-                        border: '1px solid rgba(252,165,165,0.45)',
-                        background: 'rgba(15,23,42,0.35)',
-                        borderRadius: 999,
-                        padding: '3px 8px',
-                      }}
-                    >
-                      {m.label} {arrow} {Math.abs(pct).toFixed(1)}%
-                    </span>
-                  );
-                })}
+              <div style={{ marginTop: 8, fontSize: 17, fontWeight: 900, lineHeight: 1.28 }}>
+                {eventTextForUiMode(severeEvent, state.uiMode)}
               </div>
+              {state.uiMode === 'stocks' && (
+                <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+                  {eventMoves(severeEvent).slice(0, 8).map((m, idx) => {
+                    const pct = (m.value - 1) * 100;
+                    const up = pct > 0;
+                    const down = pct < 0;
+                    const color = up ? 'rgba(120,255,180,0.98)' : down ? 'rgba(255,140,140,0.98)' : 'rgba(226,232,240,0.95)';
+                    const arrow = up ? '▲' : down ? '▼' : '•';
+                    const label = eventMoveLabel(severeEvent, idx, state.uiMode);
+                    return (
+                      <span
+                        key={`${severeEvent.id}-dock-list-${idx}-${label}`}
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 900,
+                          color,
+                          border: '1px solid rgba(252,165,165,0.45)',
+                          background: 'rgba(15,23,42,0.35)',
+                          borderRadius: 999,
+                          padding: '3px 8px',
+                        }}
+                      >
+                        {label} {arrow} {Math.abs(pct).toFixed(1)}%
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
               {severeEvent.seriousness === 'timed' && (
                 <div style={{ marginTop: 10 }}>
                   <div
@@ -557,7 +573,7 @@ export function Hud({
           )}
 
           {bubbleEvents.map((event) => (
-            <EventNotificationBubble key={event.id} event={event} />
+            <EventNotificationBubble key={event.id} event={event} uiMode={state.uiMode} />
           ))}
         </div>
       </div>
@@ -602,36 +618,39 @@ export function Hud({
           <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
             {severeEvent.seriousness === 'timed' ? 'Timed Event' : 'Serious Event'}
           </div>
-          <div style={{ marginTop: 8, fontSize: severeMoving ? 15 : 20, fontWeight: 900, lineHeight: 1.25, transition: 'font-size 1050ms cubic-bezier(0.22, 1, 0.36, 1)' }}>
-            {severeEvent.text}
+          <div style={{ marginTop: 8, fontSize: severeMoving ? 17 : 22, fontWeight: 900, lineHeight: 1.28, transition: 'font-size 1050ms cubic-bezier(0.22, 1, 0.36, 1)' }}>
+            {eventTextForUiMode(severeEvent, state.uiMode)}
           </div>
           {severeMoving && (
             <>
-              <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 7 }}>
-                {eventMoves(severeEvent).slice(0, 8).map((m, idx) => {
-                  const pct = (m.value - 1) * 100;
-                  const up = pct > 0;
-                  const down = pct < 0;
-                  const color = up ? 'rgba(120,255,180,0.98)' : down ? 'rgba(255,140,140,0.98)' : 'rgba(226,232,240,0.95)';
-                  const arrow = up ? '▲' : down ? '▼' : '•';
-                  return (
-                    <span
-                      key={`${severeEvent.id}-dock-${idx}-${m.label}`}
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 900,
-                        color,
-                        border: '1px solid rgba(252,165,165,0.45)',
-                        background: 'rgba(15,23,42,0.35)',
-                        borderRadius: 999,
-                        padding: '3px 8px',
-                      }}
-                    >
-                      {m.label} {arrow} {Math.abs(pct).toFixed(1)}%
-                    </span>
-                  );
-                })}
-              </div>
+              {state.uiMode === 'stocks' && (
+                <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+                  {eventMoves(severeEvent).slice(0, 8).map((m, idx) => {
+                    const pct = (m.value - 1) * 100;
+                    const up = pct > 0;
+                    const down = pct < 0;
+                    const color = up ? 'rgba(120,255,180,0.98)' : down ? 'rgba(255,140,140,0.98)' : 'rgba(226,232,240,0.95)';
+                    const arrow = up ? '▲' : down ? '▼' : '•';
+                    const label = eventMoveLabel(severeEvent, idx, state.uiMode);
+                    return (
+                      <span
+                        key={`${severeEvent.id}-dock-${idx}-${label}`}
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 900,
+                          color,
+                          border: '1px solid rgba(252,165,165,0.45)',
+                          background: 'rgba(15,23,42,0.35)',
+                          borderRadius: 999,
+                          padding: '3px 8px',
+                        }}
+                      >
+                        {label} {arrow} {Math.abs(pct).toFixed(1)}%
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
               {severeEvent.seriousness === 'timed' && (
                 <div style={{ marginTop: 10 }}>
                   <div

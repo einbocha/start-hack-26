@@ -74,6 +74,8 @@ export type EventSeriousness = 'neutral' | 'negative' | 'serious' | 'timed' | 'i
 export type ScriptedEvent = {
   id: string;
   text: string;
+  cityText?: string;
+  assetText?: string;
   startYear: number;
   endYear: number;
   mode: EventMode;

@@ -18,8 +18,8 @@ import { Line } from 'react-chartjs-2';
 import { AssetPanel } from './components/AssetPanel';
 import { Hud } from './components/Hud';
 import { gameReducer, createInitialState } from '../game/reducer';
-import { activeEventsForYear, normalizeEventCatalog } from '../game/events';
-import { Asset, Market, Sector, VolatilityLabel } from '../game/types';
+import { activeEventsForYear, computeEventMultipliers, normalizeEventCatalog } from '../game/events';
+import { Asset, Market, ScriptedEvent, Sector, VolatilityLabel } from '../game/types';
 import { visualFor, roadVisuals } from '../game/visuals';
 import { netWorth } from '../game/portfolio';
 
@@ -352,6 +352,9 @@ function SelectableBuilding({
   onToggle,
   outlineMaterial,
   selectedOutlineMaterial,
+  showEventMarker,
+  eventMarkerOffsetY,
+  eventMarkerColor,
 }: {
   id: string;
   base: THREE.Object3D;
@@ -369,6 +372,9 @@ function SelectableBuilding({
   onToggle: (id: string) => void;
   outlineMaterial: THREE.Material;
   selectedOutlineMaterial: THREE.Material;
+  showEventMarker?: boolean;
+  eventMarkerOffsetY?: number;
+  eventMarkerColor?: string;
 }) {
   const cloneWithUniqueMaterials = (src: THREE.Object3D) => {
     const c = src.clone(true);
@@ -447,6 +453,12 @@ function SelectableBuilding({
 
       {uiMode === 'city' && selected && <primitive object={selectedOutline} scale={1.03} />}
       <primitive object={locked && assetType !== 'property' ? lockedModel : model} />
+      {uiMode === 'city' && showEventMarker && (
+        <mesh position={[0, eventMarkerOffsetY ?? 1.35, 0]} renderOrder={25}>
+          <sphereGeometry args={[0.12, 14, 14]} />
+          <meshBasicMaterial color={eventMarkerColor ?? '#ff4d4f'} toneMapped={false} />
+        </mesh>
+      )}
     </group>
   );
 }
@@ -1080,6 +1092,7 @@ function ModelBatch({
 
 function City({
   assets,
+  activeEvents,
   uiMode,
   selectedId,
   onToggleBuilding,
@@ -1087,6 +1100,7 @@ function City({
   interactionsEnabled,
 }: {
   assets: Asset[];
+  activeEvents: ScriptedEvent[];
   uiMode: 'city' | 'stocks';
   selectedId: string | null;
   onToggleBuilding: (id: string) => void;
@@ -1135,6 +1149,35 @@ function City({
     }
     return m;
   }, [assets]);
+  const stockBySymbol = useMemo(() => {
+    const m = new Map<string, Asset>();
+    for (const a of assets) {
+      if (a.type !== 'stock') continue;
+      m.set(a.symbol.trim().toLowerCase(), a);
+    }
+    return m;
+  }, [assets]);
+  const assetsById = useMemo(() => {
+    const r: Record<string, Asset> = {};
+    for (const a of assets) r[a.id] = a;
+    return r;
+  }, [assets]);
+
+  const eventMultipliersByAssetId = useMemo(
+    () => computeEventMultipliers(activeEvents, assetsById),
+    [activeEvents, assetsById],
+  );
+
+  const eventAffectedStockColorById = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const [assetId, mult] of Object.entries(eventMultipliersByAssetId)) {
+      const asset = assetsById[assetId];
+      if (!asset || asset.type !== 'stock') continue;
+      // Net multiplier > 1 means price rises; otherwise it falls.
+      m.set(assetId, mult > 1 ? '#78ffb4' : '#ff4d4f');
+    }
+    return m;
+  }, [eventMultipliersByAssetId, assetsById]);
 
   const propertyByHouseId = useMemo(() => {
     const m = new Map<string, Asset>();
@@ -1360,6 +1403,11 @@ function City({
 
     return m;
   }, [sectorGroups, etfBySectorLabel, sectorEtfPosById, stocksBySectorLabel, stockBubblePosById]);
+  useEffect(() => {
+    return () => {
+      for (const geom of sectorLinesByEtfId.values()) geom.dispose();
+    };
+  }, [sectorLinesByEtfId]);
 
   const countryLinesByEtfId = useMemo(() => {
     const m = new Map<string, THREE.BufferGeometry>();
@@ -1395,6 +1443,11 @@ function City({
 
     return m;
   }, [countryGroups, countryEtfByMarket, countryEtfPosById, stocksByMarket, stockBubblePosById]);
+  useEffect(() => {
+    return () => {
+      for (const geom of countryLinesByEtfId.values()) geom.dispose();
+    };
+  }, [countryLinesByEtfId]);
 
   const sectorLineMatDim = useMemo(
     () =>
@@ -1408,6 +1461,7 @@ function City({
       }),
     [],
   );
+  useEffect(() => () => sectorLineMatDim.dispose(), [sectorLineMatDim]);
 
   const sectorLineMatBright = useMemo(
     () =>
@@ -1421,6 +1475,7 @@ function City({
       }),
     [],
   );
+  useEffect(() => () => sectorLineMatBright.dispose(), [sectorLineMatBright]);
 
   const countryLineMatDim = useMemo(
     () =>
@@ -1434,6 +1489,7 @@ function City({
       }),
     [],
   );
+  useEffect(() => () => countryLineMatDim.dispose(), [countryLineMatDim]);
 
   const countryLineMatBright = useMemo(
     () =>
@@ -1447,6 +1503,7 @@ function City({
       }),
     [],
   );
+  useEffect(() => () => countryLineMatBright.dispose(), [countryLineMatBright]);
 
   const selectedStockSectorLineGeom = useMemo(() => {
     if (!selectedAsset || selectedAsset.type !== 'stock') return null;
@@ -1465,6 +1522,11 @@ function City({
     );
     return geom;
   }, [selectedAsset, sectorEtfPosById, stockBubblePosById]);
+  useEffect(() => {
+    return () => {
+      selectedStockSectorLineGeom?.dispose();
+    };
+  }, [selectedStockSectorLineGeom]);
 
   const selectedStockCountryLineGeom = useMemo(() => {
     if (!selectedAsset || selectedAsset.type !== 'stock') return null;
@@ -1483,6 +1545,11 @@ function City({
     );
     return geom;
   }, [selectedAsset, countryEtfPosById, stockBubblePosById]);
+  useEffect(() => {
+    return () => {
+      selectedStockCountryLineGeom?.dispose();
+    };
+  }, [selectedStockCountryLineGeom]);
 
   const selectedSectorEtfFullGeom = useMemo(() => {
     if (!selectedAsset || selectedAsset.type !== 'etf') return null;
@@ -1680,6 +1747,11 @@ function City({
                   onToggle={onToggleBuilding}
                   outlineMaterial={outlineMat}
                   selectedOutlineMaterial={highlightCountryBuildings ? countrySelectedOutlineMat : selectedOutlineMat}
+                  showEventMarker={eventAffectedStockColorById.has(asset.id)}
+                  eventMarkerOffsetY={
+                    normalizeTypeName(meta.house.type).startsWith('building-skyscraper-') ? 5 : 1.35
+                  }
+                  eventMarkerColor={eventAffectedStockColorById.get(asset.id)}
                 />
                   );
                 })()}
@@ -2100,6 +2172,7 @@ export default function Home() {
         <Suspense fallback={null}>
           <City
             assets={allAssets}
+            activeEvents={state.activeEvents}
             uiMode={state.uiMode}
             selectedId={state.selectedAssetId}
             onToggleBuilding={(id) =>

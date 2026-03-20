@@ -1,4 +1,4 @@
-import { activeEventsForYear, computeEventMultipliers } from './events';
+import { activeEventsForYear, computeEventMultipliers, eventTextForUiMode } from './events';
 import { applyProgression } from './progression';
 import { rngFrom } from './rng';
 import { Asset, GameState } from './types';
@@ -69,7 +69,7 @@ export function advanceOneYear(state: GameState): GameState {
     ? {
         id: activeEvents[0].id,
         title: 'Scripted event',
-        description: activeEvents[0].text,
+        description: eventTextForUiMode(activeEvents[0], nextUiMode),
         appliesTo: { kind: 'asset' as const, assetId: Object.keys(state.assets)[0] ?? '' },
         multiplier: 1,
       }
@@ -111,7 +111,7 @@ export function advanceOneYear(state: GameState): GameState {
       ? `Unlocked: ${progression.newlyUnlocked.map((id) => progression.nextAssets[id].displayName).join(', ')}.`
       : null;
 
-  const eventMsg = activeEvents[0] ? activeEvents[0].text : null;
+  const eventMsg = activeEvents[0] ? eventTextForUiMode(activeEvents[0], nextUiMode) : null;
 
   // Nominal net worth at end of year.
   const nominalNetWorth = netWorth({ ...state, year: nextYear, assets: progression.nextAssets });
