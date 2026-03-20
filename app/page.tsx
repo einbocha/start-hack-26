@@ -1895,6 +1895,54 @@ export default function Home() {
   const leaderboardBucket = difficultyToBucket(difficulty);
   const [eventCatalog, setEventCatalog] = useState<ReturnType<typeof normalizeEventCatalog>>([]);
 
+  // Lightweight tutorial “messages” that reuse the event UI styling.
+  // They are displayed as info bubbles in the HUD (and never affect game logic).
+  const [tutorialEvents, setTutorialEvents] = useState<ScriptedEvent[]>([]);
+  const tutorialInitRef = useRef(false);
+  const runStartYearRef = useRef<number | null>(null);
+  const shownTutorialKeysRef = useRef<Set<string>>(new Set());
+
+  const unlockedAssetIdsRef = useRef<Set<string> | null>(null);
+  const prevUiModeRef = useRef<'city' | 'stocks'>('city');
+  const firstEventTutorialShownRef = useRef(false);
+  const firstStockModeTutorialShownRef = useRef(false);
+  const firstStockInspectTutorialShownRef = useRef(false);
+  const mediumUnlockedTutorialShownRef = useRef(false);
+  const lowUnlockedTutorialShownRef = useRef(false);
+  const etfUnlockedTutorialShownRef = useRef(false);
+  const lastBigMoveYearRef = useRef<number | null>(null);
+
+  const enqueueTutorial = (tutorialKey: string, params: { cityText: string; assetText: string }) => {
+    if (shownTutorialKeysRef.current.has(tutorialKey)) return;
+    shownTutorialKeysRef.current.add(tutorialKey);
+
+    const id = `tut-${tutorialKey}-${state.year}`;
+    const startYear = state.year;
+    const endYear = startYear;
+
+    const evt: ScriptedEvent = {
+      id,
+      text: params.assetText,
+      cityText: params.cityText,
+      assetText: params.assetText,
+      startYear,
+      endYear,
+      mode: 'both',
+      seriousness: 'info',
+      assets: [],
+      symbols: [],
+      values: [],
+    };
+
+    const maxCount = 3;
+    setTutorialEvents((prev) => {
+      const next = [...prev, evt];
+      if (next.length <= maxCount) return next;
+      // keep the most recent ones
+      return next.slice(next.length - maxCount);
+    });
+  };
+
   const [state, setState] = useState(() =>
     createInitialState({ startingCash, seed: 26, year: 2026, eventCatalog: [] }),
   );
@@ -1991,6 +2039,267 @@ export default function Home() {
       return { ...s, eventCatalog, activeEvents, uiMode };
     });
   }, [started, eventCatalog]);
+
+  // --- General tutorial system (info bubbles using the same HUD message UI) ---
+  useEffect(() => {
+    if (started) return;
+    tutorialInitRef.current = false;
+    runStartYearRef.current = null;
+    shownTutorialKeysRef.current = new Set();
+    unlockedAssetIdsRef.current = null;
+    prevUiModeRef.current = 'city';
+    firstEventTutorialShownRef.current = false;
+    firstStockModeTutorialShownRef.current = false;
+    firstStockInspectTutorialShownRef.current = false;
+    mediumUnlockedTutorialShownRef.current = false;
+    lowUnlockedTutorialShownRef.current = false;
+    etfUnlockedTutorialShownRef.current = false;
+    lastBigMoveYearRef.current = null;
+    setTutorialEvents([]);
+  }, [started]);
+
+  const prevTutorialYearRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!started) {
+      prevTutorialYearRef.current = null;
+      return;
+    }
+    if (prevTutorialYearRef.current === null) {
+      prevTutorialYearRef.current = state.year;
+      return;
+    }
+    if (prevTutorialYearRef.current !== state.year) {
+      // Make tutorials behave like events: they should disappear when the next year starts.
+      setTutorialEvents([]);
+      prevTutorialYearRef.current = state.year;
+    }
+  }, [started, state.year]);
+
+  useEffect(() => {
+    if (!started) return;
+    if (tutorialInitRef.current) return;
+    tutorialInitRef.current = true;
+    runStartYearRef.current = state.year;
+  }, [started, state.year]);
+
+  // Evenly-spread learning curve (no timers).
+  useEffect(() => {
+    if (!started) return;
+    if (runStartYearRef.current == null) return;
+
+    const offset = state.year - runStartYearRef.current;
+    const lessonByOffset: Record<number, string> = {
+      0: 'stock-basics',
+      13: 'volatility',
+      26: 'events',
+      39: 'low-unlock',
+      52: 'diversification',
+      65: 'etf-unlock',
+      78: 'strategy',
+      91: 'endgame',
+    };
+    const lessonKey = lessonByOffset[offset];
+    if (!lessonKey) return;
+    if (shownTutorialKeysRef.current.has(lessonKey)) return;
+
+    const unlockedEtfs = Object.values(state.assets).some((a) => a.type === 'etf' && a.unlocked);
+    const unlockedLow = Object.values(state.assets).some((a) => a.type === 'stock' && a.unlocked && a.volatilityLabel === 'low');
+    const unlockedMedium = Object.values(state.assets).some(
+      (a) => a.type === 'stock' && a.unlocked && a.volatilityLabel === 'medium',
+    );
+
+    const hasActiveHeadlines = state.activeEvents.length > 0;
+    const hasSevere = state.activeEvents.some((e) => e.seriousness === 'serious' || e.seriousness === 'timed');
+
+    const hist = state.netWorthHistory;
+    const swingPct =
+      hist.length >= 2 && hist[hist.length - 2].price !== 0 ? (hist[hist.length - 1].price - hist[hist.length - 2].price) / hist[hist.length - 2].price : 0;
+
+    let cityText = '';
+    let assetText = '';
+
+    switch (lessonKey) {
+      case 'stock-basics': {
+        cityText =
+          "Welcome to the city-economy tutorial. Buying shares is like buying the rights to a neighborhood’s success. Sell when you want to trim the chaos.";
+        assetText =
+          'A stock is a tradable business. Buy to hold shares; sell to reduce your position. In Stock Mode, inspect bubbles and trade from the panel.';
+        break;
+      }
+      case 'volatility': {
+        cityText =
+          "Some districts are dramatic. Volatility is how much prices can swing from year to year—like the city’s mood.";
+        assetText =
+          'Volatility labels (high/medium/low) describe how wild price movement can be. Higher volatility can move more, but it can also drop fast.';
+        break;
+      }
+      case 'events': {
+        cityText = hasSevere
+          ? "Headlines are extra loud right now. Watch the city carefully—next year can change prices fast."
+          : hasActiveHeadlines
+            ? 'A headline is active. Expect prices to react at the year step.'
+            : 'No headlines yet, but the city has the decency to warn you later.';
+        assetText =
+          'Events apply price multipliers to targeted assets for their duration. In Stock Mode, check which bubbles are affected to understand the move.';
+        break;
+      }
+      case 'low-unlock': {
+        cityText = unlockedLow
+          ? 'The city is entering a steadier phase: low-volatility businesses are now available.'
+          : unlockedMedium
+            ? 'Stability is improving. Low-volatility options should appear soon.'
+            : 'The city is still warming up. Low-volatility unlocks as the run progresses.';
+        assetText = unlockedLow
+          ? 'Low-volatility stocks are unlocked. They tend to swing less year-to-year—useful for steadier growth.'
+          : 'Keep an eye on the unlock curve. Low-volatility stocks arrive later and usually swing less.';
+        break;
+      }
+      case 'diversification': {
+        cityText = 'Smart strategy: don’t bet the whole city on one street. Spread your influence.';
+        assetText =
+          'Diversification spreads risk across sectors/markets. Before ETFs unlock, hold multiple stocks from different categories to smooth shocks.';
+        break;
+      }
+      case 'etf-unlock': {
+        cityText = unlockedEtfs
+          ? "ETFs unlocked. Because bundling chaos is apparently a feature now."
+          : 'Later, ETF “regions” open up—bundled businesses for calmer growth.';
+        assetText = unlockedEtfs
+          ? 'ETFs are unlocked. They bundle many assets into one smoother position.'
+          : 'ETFs unlock in the later half of the run. They’re your easiest diversification lever once available.';
+        break;
+      }
+      case 'strategy': {
+        const big = Math.abs(swingPct) >= 0.28;
+        const dir = swingPct >= 0 ? 'up' : 'down';
+        cityText = big
+          ? `Whoa. The city just flipped ${dir}. Don’t panic—react, then let time do the heavy lifting.`
+          : 'When the city gets dramatic, don’t chase every spike. React to signals you can handle.';
+        assetText = big
+          ? `Your net worth moved sharply (${(swingPct * 100).toFixed(1)}%). Re-check volatility and event impacts before trading aggressively.`
+          : 'Re-check volatility + event impact when prices move. Adjust exposure gradually instead of panic-buying/selling.';
+        break;
+      }
+      case 'endgame': {
+        cityText = 'By now you’re basically managing a small civilization. Keep your portfolio balanced and let the run do its thing.';
+        assetText = 'You’ve learned the toolkit: volatility tiers, event awareness, and diversification. Stay consistent through 100 years.';
+        break;
+      }
+      default:
+        cityText = 'The city economy grows smarter as you play.';
+        assetText = 'Use volatility, events, and diversification to manage risk.';
+    }
+
+    enqueueTutorial(lessonKey, { cityText, assetText });
+  }, [started, state.year, state.assets, state.activeEvents, state.netWorthHistory]);
+
+  // --- Restore the original “first time / unlock / big swing” tutorials ---
+  useEffect(() => {
+    if (!started) return;
+    if (firstEventTutorialShownRef.current) return;
+    if (state.activeEvents.length === 0) return;
+    const relevant = state.activeEvents.some(
+      (e) => e.seriousness === 'serious' || e.seriousness === 'timed' || e.seriousness === 'negative',
+    );
+    if (!relevant) return;
+    firstEventTutorialShownRef.current = true;
+    enqueueTutorial('first-event', {
+      cityText: 'A headline just hit the city. The next year step may swing prices—try not to “panic-buy” like a tourist.',
+      assetText: 'Events can move prices quickly. In stock mode, inspect the affected bubbles to see what changed.',
+    });
+  }, [started, state.activeEvents]);
+
+  useEffect(() => {
+    if (!started) return;
+    const prev = prevUiModeRef.current;
+    const cur = state.uiMode;
+    if (prev === 'city' && cur === 'stocks' && !firstStockModeTutorialShownRef.current) {
+      firstStockModeTutorialShownRef.current = true;
+      enqueueTutorial('enter-stock-mode', {
+        cityText: 'City mode shows “what you see”. Stock mode shows “what’s driving prices”. Try both—no drama.',
+        assetText: 'Welcome to stock mode. Select bubbles to inspect assets, then use buy/sell in the panel.',
+      });
+    }
+    prevUiModeRef.current = cur;
+  }, [started, state.uiMode]);
+
+  useEffect(() => {
+    if (!started) return;
+    const id = state.selectedAssetId;
+    if (!id) return;
+    const a = state.assets[id];
+    if (!a || a.type !== 'stock') return;
+    if (firstStockInspectTutorialShownRef.current) return;
+    firstStockInspectTutorialShownRef.current = true;
+    enqueueTutorial('inspect-first-stock', {
+      cityText: 'Nice. You’re not just clicking buildings—you’re reading what they represent.',
+      assetText: 'Inspect this stock in detail: current price, volatility label, and its related ETFs. Use the buttons to trade.',
+    });
+  }, [started, state.selectedAssetId, state.assets]);
+
+  useEffect(() => {
+    if (!started) return;
+    const curUnlockedIds = new Set(Object.values(state.assets).filter((a) => a.unlocked).map((a) => a.id));
+    const prevUnlockedIds = unlockedAssetIdsRef.current;
+
+    if (prevUnlockedIds) {
+      const newlyUnlocked = Array.from(curUnlockedIds).filter((id) => !prevUnlockedIds.has(id));
+      if (newlyUnlocked.length > 0) {
+        const newlyAssets = newlyUnlocked.map((id) => state.assets[id]).filter((a): a is Asset => !!a);
+
+        const anyEtf = newlyAssets.some((a) => a.type === 'etf');
+        if (anyEtf && !etfUnlockedTutorialShownRef.current) {
+          etfUnlockedTutorialShownRef.current = true;
+          enqueueTutorial('unlock-etf', {
+            cityText: 'ETFs open up—apparently the city decided that bundling chaos is also a personality trait.',
+            assetText: 'ETFs bundle multiple assets and tend to smooth risk compared to single stocks.',
+          });
+        }
+
+        const anyMedium = newlyAssets.some((a) => a.type === 'stock' && a.volatilityLabel === 'medium');
+        if (anyMedium && !mediumUnlockedTutorialShownRef.current) {
+          mediumUnlockedTutorialShownRef.current = true;
+          enqueueTutorial('unlock-medium', {
+            cityText: 'New districts unlock. Prices should feel less “twitchy” than the early days.',
+            assetText: 'Medium-volatility stocks are unlocked. Expect noticeable moves, but not as extreme as high-risk names.',
+          });
+        }
+
+        const anyLow = newlyAssets.some((a) => a.type === 'stock' && a.volatilityLabel === 'low');
+        if (anyLow && !lowUnlockedTutorialShownRef.current) {
+          lowUnlockedTutorialShownRef.current = true;
+          enqueueTutorial('unlock-low', {
+            cityText: 'The city becomes calmer in certain neighborhoods. Lower-volatility businesses show steadier tempo.',
+            assetText: 'Low-volatility stocks are unlocked. They generally swing less year-to-year than high volatility names.',
+          });
+        }
+      }
+    }
+    unlockedAssetIdsRef.current = curUnlockedIds;
+  }, [started, state.assets]);
+
+  useEffect(() => {
+    if (!started) return;
+    const hist = state.netWorthHistory;
+    if (hist.length < 2) return;
+    const prev = hist[hist.length - 2].price;
+    const last = hist[hist.length - 1].price;
+    if (prev === 0) return;
+    const pct = (last - prev) / prev;
+    const absPct = Math.abs(pct);
+    if (absPct < 0.28) return;
+    if (lastBigMoveYearRef.current === state.year) return;
+    lastBigMoveYearRef.current = state.year;
+    const up = pct > 0;
+    enqueueTutorial(`big-swing-${state.year}`, {
+      cityText: up
+        ? 'Good news: the city’s economy just surged. Try not to overreact like you just found free parking.'
+        : 'Uh oh: the city took a fast hit. React, but don’t sprint—plan.',
+      assetText: up
+        ? `Your net worth jumped quickly (${(pct * 100).toFixed(1)}%). Check what events and volatility are doing.`
+        : `Your net worth dropped quickly (${(pct * 100).toFixed(1)}%). Review event impacts + diversify. Avoid panic trading.`,
+    });
+  }, [started, state.netWorthHistory, state.year]);
 
   const timedAutoAdvanceKeyRef = useRef<string | null>(null);
   useEffect(() => {
@@ -2173,6 +2482,7 @@ export default function Home() {
             }
             onSellAll={(assetId, qty) => dispatch({ type: 'SELL', assetId, qty })}
             debugSelectedBuildingFileName={debugSelectedBuildingFiles ?? undefined}
+            tutorialEvents={tutorialEvents}
           >
             {panelOpen && selectedAsset && (
               <AssetPanel

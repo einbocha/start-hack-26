@@ -135,6 +135,7 @@ export function Hud({
   onSelectAsset,
   debugSelectedBuildingFileName,
   onSellAll,
+  tutorialEvents,
   children,
 }: {
   state: GameState;
@@ -143,6 +144,7 @@ export function Hud({
   onSelectAsset: (assetId: string) => void;
   debugSelectedBuildingFileName?: string | null;
   onSellAll: (assetId: string, qty: number) => void;
+  tutorialEvents?: ScriptedEvent[];
   children?: ReactNode;
 }) {
   const [stocksOpen, setStocksOpen] = useState(false);
@@ -152,7 +154,10 @@ export function Hud({
   const pnl = totalPnL(state);
   const pnlColor = pnl >= 0 ? 'rgba(120,255,180,0.95)' : 'rgba(255,140,140,0.95)';
   const hint = diversificationHint(state.assets);
-  const visibleEvents = useMemo(() => state.activeEvents, [state.activeEvents]);
+  const visibleEvents = useMemo(() => {
+    const t = tutorialEvents ?? [];
+    return [...state.activeEvents, ...t];
+  }, [state.activeEvents, tutorialEvents]);
   const severeEvent = visibleEvents.find((e) => e.seriousness === 'serious' || e.seriousness === 'timed') ?? null;
   const bubbleEvents = visibleEvents.filter((e) => e.seriousness !== 'serious' && e.seriousness !== 'timed');
   const topInset = severeEvent ? 56 : 16;
