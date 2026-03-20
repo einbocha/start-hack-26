@@ -73,14 +73,19 @@ async function fetchLeaderboardForBucket(bucket: DifficultyBucket): Promise<Lead
   const byLower = await supabaseFetch(
     `/rest/v1/${encodeURIComponent(SUPABASE_TABLE)}?select=id,name,score,difficulty&difficulty=eq.${code}&order=score.desc&limit=10`,
   );
-  if (byLower.ok) return (await byLower.json()) as LeaderboardRow[];
+  if (byLower.ok) {
+    const data: unknown = await byLower.json();
+    if (Array.isArray(data)) return data as LeaderboardRow[];
+  }
 
   // Fallback: quoted uppercase column name "Difficulty".
   const byUpper = await supabaseFetch(
     `/rest/v1/${encodeURIComponent(SUPABASE_TABLE)}?select=id,name,score,Difficulty&Difficulty=eq.${code}&order=score.desc&limit=10`,
   );
   if (byUpper.ok) {
-    const rows = (await byUpper.json()) as Array<LeaderboardRow & { Difficulty?: number }>;
+    const data: unknown = await byUpper.json();
+    if (!Array.isArray(data)) return [];
+    const rows = data as Array<LeaderboardRow & { Difficulty?: number }>;
     return rows.map((r) => ({ ...r, difficulty: r.difficulty ?? r.Difficulty }));
   }
 
@@ -89,7 +94,9 @@ async function fetchLeaderboardForBucket(bucket: DifficultyBucket): Promise<Lead
     `/rest/v1/${encodeURIComponent(SUPABASE_TABLE)}?select=id,name,score,diff&diff=eq.${code}&order=score.desc&limit=10`,
   );
   if (!byDiff.ok) return [];
-  const rows = (await byDiff.json()) as Array<LeaderboardRow & { diff?: number }>;
+  const data: unknown = await byDiff.json();
+  if (!Array.isArray(data)) return [];
+  const rows = data as Array<LeaderboardRow & { diff?: number }>;
   return rows.map((r) => ({ ...r, difficulty: r.difficulty ?? r.diff }));
 }
 
@@ -186,6 +193,41 @@ type LeaderboardRow = {
   difficulty?: number;
   created_at?: string;
 };
+
+/**
+ * When NEXT_PUBLIC_SCREENSHOT_LEADERBOARD=1, dummy rows are merged with live Supabase results (sorted by score).
+ * The fetch always runs so the real leaderboard still works when this is off.
+ */
+const SCREENSHOT_DUMMY_LEADERBOARD = process.env.NEXT_PUBLIC_SCREENSHOT_LEADERBOARD === '1';
+
+const DUMMY_LEADERBOARD_BY_BUCKET: Record<DifficultyBucket, LeaderboardRow[]> = {
+  easy: [
+    { id: 'shot-e-1', name: 'Benjamin', score: 184_320, difficulty: 0 },
+    { id: 'shot-e-2', name: 'Nina', score: 162_890, difficulty: 0 },
+    { id: 'shot-e-3', name: 'Julius', score: 148_200, difficulty: 0 },
+    { id: 'shot-e-4', name: 'Yashar', score: 127_450, difficulty: 0 },
+  ],
+  medium: [
+    { id: 'shot-m-1', name: 'Nina', score: 98_400, difficulty: 1 },
+    { id: 'shot-m-2', name: 'Benjamin', score: 91_200, difficulty: 1 },
+    { id: 'shot-m-3', name: 'Yashar', score: 85_100, difficulty: 1 },
+    { id: 'shot-m-4', name: 'Julius', score: 72_850, difficulty: 1 },
+  ],
+  hard: [
+    { id: 'shot-h-1', name: 'Yashar', score: 54_200, difficulty: 2 },
+    { id: 'shot-h-2', name: 'Julius', score: 48_900, difficulty: 2 },
+    { id: 'shot-h-3', name: 'Benjamin', score: 41_300, difficulty: 2 },
+    { id: 'shot-h-4', name: 'Nina', score: 38_100, difficulty: 2 },
+  ],
+};
+
+function mergeScreenshotDummyRows(bucket: DifficultyBucket, rows: LeaderboardRow[]): LeaderboardRow[] {
+  if (!SCREENSHOT_DUMMY_LEADERBOARD) return rows;
+  const seed = DUMMY_LEADERBOARD_BY_BUCKET[bucket];
+  const merged = [...seed, ...rows];
+  merged.sort((a, b) => b.score - a.score);
+  return merged.slice(0, 10);
+}
 
 function useObjWithMtl(opts: { obj: string; mtl: string; resourcePath: string }) {
   const materials = useLoader(MTLLoader, opts.mtl, (loader) => {
@@ -1811,12 +1853,13 @@ export default function Home() {
   });
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
   const [leaderboardError, setLeaderboardError] = useState<string | null>(null);
-  const [leaderboardView, setLeaderboardView] = useState<DifficultyBucket>('easy');
   const [pendingRun, setPendingRun] = useState<{ score: number; bucket: DifficultyBucket } | null>(null);
   const [playerName, setPlayerName] = useState('');
   const [savingScore, setSavingScore] = useState(false);
 
   const startingCash = difficulty === 'min' ? 5_000 : difficulty === 'mid' ? 10_000 : 20_000;
+  /** Same tier as start capital (min→easy, mid→medium, max→hard); single selector in the menu. */
+  const leaderboardBucket = difficultyToBucket(difficulty);
   const [eventCatalog, setEventCatalog] = useState<ReturnType<typeof normalizeEventCatalog>>([]);
 
   const [state, setState] = useState(() =>
@@ -1884,7 +1927,6 @@ export default function Home() {
 
   useEffect(() => {
     if (!started) {
-      setTitleVisible(false);
       setIntroZooming(false);
       return;
     }
@@ -1894,11 +1936,10 @@ export default function Home() {
   }, [started]);
 
   useEffect(() => {
-    if (!started) return;
-    setTitleVisible(true);
-    const t = window.setTimeout(() => setTitleVisible(false), 2200);
+    // Show the home-screen title animation once after initial load.
+    const t = window.setTimeout(() => setTitleVisible(true), 80);
     return () => window.clearTimeout(t);
-  }, [started]);
+  }, []);
 
   useEffect(() => {
     if (!started) return;
@@ -1946,7 +1987,11 @@ export default function Home() {
           fetchLeaderboardForBucket('hard'),
         ]);
         if (cancelled) return;
-        setLeaderboard({ easy, medium, hard });
+        setLeaderboard({
+          easy: mergeScreenshotDummyRows('easy', easy),
+          medium: mergeScreenshotDummyRows('medium', medium),
+          hard: mergeScreenshotDummyRows('hard', hard),
+        });
       } catch (e) {
         if (!cancelled) setLeaderboardError(e instanceof Error ? e.message : 'Failed to load leaderboard');
       } finally {
@@ -1977,7 +2022,6 @@ export default function Home() {
     const finalScore = Math.round(netWorth(state));
     const bucket = difficultyToBucket(difficulty);
     setPendingRun({ score: finalScore, bucket });
-    setLeaderboardView(bucket);
     setPlayerName('');
     // Return to main screen: camera smoothly moves back via existing start/menu camera logic.
     setStarted(false);
@@ -2159,6 +2203,11 @@ export default function Home() {
 
       {/* Main menu overlay */}
       <div
+        role="presentation"
+        onClick={() => {
+          if (started || !map) return;
+          setStarted(true);
+        }}
         style={{
           position: 'absolute',
           inset: 0,
@@ -2166,82 +2215,109 @@ export default function Home() {
           alignItems: 'center',
           justifyContent: 'center',
           pointerEvents: started ? 'none' : 'auto',
-          opacity: started && !titleVisible ? 0 : 1,
+          opacity: started ? 0 : 1,
           transition: 'opacity 200ms ease',
           zIndex: 20,
+          cursor: started ? 'default' : map ? 'pointer' : 'wait',
         }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-          <button
-            onClick={() => {
-              setTitleVisible(true);
-              setStarted(true);
-            }}
-            disabled={!map}
-            title={map ? 'Start' : 'Loading map...'}
-            style={{
-              width: 90,
-              height: 90,
-              borderRadius: 999,
-              border: '1px solid rgba(255,255,255,0.35)',
-              background: 'linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.06))',
-              color: 'rgba(255,255,255,0.95)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-              cursor: map ? 'pointer' : 'not-allowed',
-              boxShadow: '0 18px 40px rgba(0,0,0,0.28), inset 0 0 0 1px rgba(255,255,255,0.10)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: 0,
-            }}
-          >
-            {/* modern play icon */}
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path
-                d="M9.2 7.6V16.4C9.2 17.1 10 17.5 10.6 17.1L17.8 12.7C18.4 12.3 18.4 11.4 17.8 11L10.6 6.6C10 6.2 9.2 6.6 9.2 7.6Z"
-                fill="rgba(255,255,255,0.95)"
-              />
-            </svg>
-          </button>
+        {(() => {
+          const menuEdgeInset = 44;
+          return (
+            <>
+        {/* Top title (letter-by-letter on initial page load) */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '16%',
+            transform: 'translateY(-50%)',
+            left: 0,
+            right: 0,
+            textAlign: 'center',
+            pointerEvents: 'none',
+            userSelect: 'none',
+            fontFamily:
+              'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
+            textShadow: '0 10px 24px rgba(0,0,0,0.35)',
+            lineHeight: 1,
+          }}
+        >
+          {'EquiCity'.split('').map((ch, i) => (
+            <span
+              key={i}
+              style={{
+                display: 'inline-block',
+                opacity: titleVisible ? 1 : 0,
+                transform: titleVisible ? 'translateY(0px) rotate(0deg)' : 'translateY(10px) rotate(-8deg)',
+                transition: 'opacity 520ms ease, transform 520ms ease',
+                transitionDelay: `${i * 60}ms`,
+                background: 'linear-gradient(90deg, rgba(255,255,255,0.98), rgba(125,211,252,0.95))',
+                WebkitBackgroundClip: 'text',
+                backgroundClip: 'text',
+                color: 'transparent',
+                fontWeight: 950,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                fontSize: 72,
+              }}
+            >
+              {ch}
+            </span>
+          ))}
+        </div>
 
-          {/* Title overlay (letter-by-letter on start) */}
+        {/* Center hint — slow fade pulse; clicks use full-screen overlay */}
+        <style>{`
+          @keyframes equicityMenuHintFade {
+            0%, 100% { opacity: 0.35; }
+            50% { opacity: 1; }
+          }
+        `}</style>
+        <div
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+            pointerEvents: 'none',
+            textAlign: 'center',
+            maxWidth: 'min(320px, 88vw)',
+          }}
+        >
           <div
             style={{
-              pointerEvents: 'none',
-              opacity: titleVisible ? 1 : 0,
-              transition: 'opacity 220ms ease',
-              userSelect: 'none',
+              fontSize: 13,
+              fontWeight: 650,
+              letterSpacing: '0.04em',
+              color: map ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.75)',
+              textShadow: '0 2px 12px rgba(0,0,0,0.35)',
               fontFamily:
                 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
-              textShadow: '0 10px 24px rgba(0,0,0,0.35)',
-              lineHeight: 1,
+              animation: 'equicityMenuHintFade 3.2s ease-in-out infinite',
+              willChange: 'opacity',
             }}
           >
-            {'EquiCity'.split('').map((ch, i) => (
-              <span
-                key={i}
-                style={{
-                  display: 'inline-block',
-                  opacity: titleVisible ? 1 : 0,
-                  transform: titleVisible ? 'translateY(0px) rotate(0deg)' : 'translateY(10px) rotate(-8deg)',
-                  transition: 'opacity 520ms ease, transform 520ms ease',
-                  transitionDelay: `${i * 60}ms`,
-                  background: 'linear-gradient(90deg, rgba(255,255,255,0.98), rgba(125,211,252,0.95))',
-                  WebkitBackgroundClip: 'text',
-                  backgroundClip: 'text',
-                  color: 'transparent',
-                  fontWeight: 950,
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
-                  fontSize: 36,
-                }}
-              >
-                {ch}
-              </span>
-            ))}
+            {map ? 'Press anywhere to start' : 'Loading map…'}
           </div>
+        </div>
 
+        {/* Bottom controls, symmetric margin to title top inset */}
+        <div
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+          style={{
+            position: 'absolute',
+            left: '50%',
+            bottom: menuEdgeInset,
+            transform: 'translateX(-50%)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 12,
+            width: 'min(760px, 92vw)',
+            zIndex: 2,
+          }}
+        >
           {/* Difficulty + starting cash */}
           <div
             style={{
@@ -2312,27 +2388,18 @@ export default function Home() {
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
               <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Leaderboard</div>
-              <div style={{ display: 'flex', gap: 6 }}>
-                {(['easy', 'medium', 'hard'] as DifficultyBucket[]).map((b) => (
-                  <button
-                    key={b}
-                    onClick={() => setLeaderboardView(b)}
-                    style={{
-                      all: 'unset',
-                      cursor: 'pointer',
-                      padding: '4px 10px',
-                      borderRadius: 999,
-                      border: leaderboardView === b ? '1px solid rgba(125,211,252,0.55)' : '1px solid rgba(255,255,255,0.2)',
-                      background: leaderboardView === b ? 'rgba(125,211,252,0.14)' : 'rgba(255,255,255,0.05)',
-                      fontSize: 11,
-                      fontWeight: 800,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.06em',
-                    }}
-                  >
-                    {b}
-                  </button>
-                ))}
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 800,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: 'rgba(125,211,252,0.9)',
+                  opacity: 0.95,
+                }}
+                title="Matches your start capital tier above"
+              >
+                {leaderboardBucket === 'easy' ? 'Easy' : leaderboardBucket === 'medium' ? 'Medium' : 'Hard'}
               </div>
             </div>
             <div style={{ marginTop: 8, minHeight: 170 }}>
@@ -2340,12 +2407,12 @@ export default function Home() {
                 <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>Loading scores...</div>
               ) : leaderboardError ? (
                 <div style={{ fontSize: 12, color: 'rgba(255,180,180,0.95)' }}>{leaderboardError}</div>
-              ) : leaderboard[leaderboardView].length === 0 ? (
+              ) : leaderboard[leaderboardBucket].length === 0 ? (
                 <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)' }}>No scores yet.</div>
               ) : (
-                leaderboard[leaderboardView].map((row, idx) => (
+                leaderboard[leaderboardBucket].map((row, idx) => (
                   <div
-                    key={`${leaderboardView}-${row.id}-${idx}`}
+                    key={`${leaderboardBucket}-${row.id}-${idx}`}
                     style={{
                       display: 'grid',
                       gridTemplateColumns: '36px 1fr auto',
@@ -2353,7 +2420,7 @@ export default function Home() {
                       alignItems: 'center',
                       padding: '6px 2px',
                       borderBottom:
-                        idx < leaderboard[leaderboardView].length - 1 ? '1px solid rgba(255,255,255,0.08)' : 'none',
+                        idx < leaderboard[leaderboardBucket].length - 1 ? '1px solid rgba(255,255,255,0.08)' : 'none',
                       fontSize: 13,
                     }}
                   >
@@ -2366,6 +2433,9 @@ export default function Home() {
             </div>
           </div>
         </div>
+            </>
+          );
+        })()}
       </div>
 
       {pendingRun && (
@@ -2446,7 +2516,10 @@ export default function Home() {
                       bucket: pendingRun.bucket,
                     });
                     const rows = await fetchLeaderboardForBucket(pendingRun.bucket);
-                    setLeaderboard((prev) => ({ ...prev, [pendingRun.bucket]: rows }));
+                    setLeaderboard((prev) => ({
+                      ...prev,
+                      [pendingRun.bucket]: mergeScreenshotDummyRows(pendingRun.bucket, rows),
+                    }));
                     setPendingRun(null);
                   } catch (e) {
                     setLeaderboardError(e instanceof Error ? e.message : 'Failed to save score');
