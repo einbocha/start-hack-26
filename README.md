@@ -1,4 +1,7 @@
-[public hosted url](https://einbocha.github.io/start-hack-26/)
+[EquiCityl](https://einbocha.github.io/start-hack-26/)
+
+![Home Screen](Screenshot 2026-03-21 at 17.09.38.png)
+![Home Screen](Screenshot 2026-03-21 at 17.08.39.png)
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
